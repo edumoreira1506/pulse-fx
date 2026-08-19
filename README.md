@@ -1,291 +1,136 @@
-# Nx React Repository
+# Pulse FX
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Monorepo Nx com a API (`pulse-fx-api`), o frontend web (`pulse-fx-webapp`) e Postgres.
 
-✨ A repository showcasing key [Nx](https://nx.dev) features for React monorepos ✨
-🚀 If you haven't connected to Nx Cloud yet, [complete your setup here](https://cloud.nx.app/get-started). Get faster builds with remote caching, distributed task execution, and self-healing CI. [See how your workspace can benefit](#nx-cloud).
+## Como subir o ambiente (Docker Compose)
 
-## 📦 Project Overview
-
-This repository demonstrates a production-ready React monorepo with:
-
-- **2 Applications**
-
-  - `pulse-fx-webapp` - React e-commerce application with product listings and detail views
-  - `pulse-fx-api` - Backend API serving product data
-
-- **7 Libraries**
-
-  - `@org/shop-feature-products` - Product listing feature (React)
-  - `@org/shop-feature-product-detail` - Product detail feature (React)
-  - `@org/shop-data` - Data access layer for shop features
-  - `@org/shop-shared-ui` - Shared UI components
-  - `@org/models` - Shared data models
-  - `@org/api-products` - API product service library
-  - `@org/shared-test-utils` - Shared testing utilities
-
-- **E2E Testing**
-  - `pulse-fx-webapp-e2e` - Playwright tests for the webapp
-
-## 🚀 Quick Start
+O Docker Desktop precisa estar em execução antes dos comandos abaixo.
 
 ```bash
-# Clone the repository
-git clone <your-fork-url>
-cd <your-repository-name>
-
-# Install dependencies
 npm install
-
-# Start the full local stack (webapp, API, Postgres) with Docker Compose
+cp .env.example .env   # opcional; os valores padrão já funcionam
 npm run docker:up
-
-# Stop the stack
-npm run docker:down
-
-# Or serve without Docker (this will simultaneously serve the API backend)
-npx nx run pulse-fx-webapp:serve
-
-# ...or you can serve the API separately
-npx nx run pulse-fx-api:serve
-
-# Build all projects
-npx nx run-many -t build
-
-# Run tests
-npx nx run-many -t test
-
-# Lint all projects
-npx nx run-many -t lint
-
-# Run e2e tests
-npx nx run pulse-fx-webapp-e2e:e2e
-
-# Run tasks in parallel
-
-npx nx run-many -t lint test build e2e --parallel=3
-
-# Visualize the project graph
-npx nx graph
 ```
 
-## 🐳 Docker Compose
-
-The local stack runs the webapp, API, and Postgres together:
+Para encerrar os containers (o volume do Postgres é mantido):
 
 ```bash
-# Build the apps and start every service
-npm run docker:up
-
-# Same, in the background
-npm run docker:up:detached
-
-# Stop containers (keeps the Postgres volume)
 npm run docker:down
 ```
 
-| Service  | URL                   |
+| Serviço  | URL                   |
 | -------- | --------------------- |
 | Webapp   | http://localhost:4200 |
 | API      | http://localhost:3333 |
 | Postgres | `localhost:5433`      |
 
-Copy `.env.example` to `.env` to change ports or database credentials. The API container already receives `DATABASE_URL` for when Postgres is wired up.
+O script `docker:up` faz o build da API e do webapp e em seguida sobe o Compose (`webapp`, `api` e `postgres`).
 
-## ⭐ Featured Nx Capabilities
+## Variáveis de ambiente
 
-This repository showcases several powerful Nx features:
+Copie `.env.example` para `.env` para sobrescrever os defaults do Compose.
 
-### 1. 🔒 Module Boundaries
+| Variável            | Default     | Uso                                      |
+| ------------------- | ----------- | ---------------------------------------- |
+| `POSTGRES_USER`     | `pulse_fx`  | Usuário do Postgres                      |
+| `POSTGRES_PASSWORD` | `pulse_fx`  | Senha do Postgres                        |
+| `POSTGRES_DB`       | `pulse_fx`  | Nome do banco                            |
+| `POSTGRES_PORT`     | `5433`      | Porta do Postgres no host                |
+| `API_PORT`          | `3333`      | Porta da API no host                     |
+| `WEBAPP_PORT`       | `4200`      | Porta do webapp no host                  |
 
-Enforces architectural constraints using tags. Each project has specific dependencies it can use:
+A API recebe automaticamente `DATABASE_URL` no formato:
 
-- `scope:shared` - Can be used by all projects
-- `scope:shop` - Shop-specific libraries
-- `scope:api` - API-specific libraries
-- `type:feature` - Feature libraries
-- `type:data` - Data access libraries
-- `type:ui` - UI component libraries
-
-**Try it out:**
-
-```bash
-# See the current project graph and boundaries
-npx nx graph
-
-# View a specific project's details
-npx nx show project pulse-fx-webapp --web
+```text
+postgresql://pulse_fx:pulse_fx@postgres:5432/pulse_fx
 ```
 
-[Learn more about module boundaries →](https://nx.dev/docs/features/enforce-module-boundaries)
+Dentro da rede do Compose o Postgres continua na porta `5432`. No host a porta publicada é `5433` para não conflitar com um Postgres local.
 
-### 2. 🎭 Playwright E2E Testing
+## Decisões técnicas relevantes e trade-offs
 
-End-to-end testing with Playwright is pre-configured:
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+- Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium.
+- Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.
+
+## Séries escolhidas e documentação de referência
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Curabitur blandit tempus porttitor.
+
+| Série                         | Fonte / documentação                                              |
+| ----------------------------- | ----------------------------------------------------------------- |
+| Lorem ipsum dolor sit amet    | https://example.com/docs/lorem-ipsum                              |
+| Consectetur adipiscing elit   | https://example.com/docs/consectetur                              |
+| Sed do eiusmod tempor         | https://example.com/docs/tempor                                   |
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper.
+
+## Regras de variação e janela de histórico por tipo de série
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam quis risus eget urna mollis ornare vel eu leo.
+
+| Tipo de série              | Variação                         | Janela de histórico            |
+| -------------------------- | -------------------------------- | ------------------------------ |
+| Lorem ipsum                | ± X% lorem ipsum dolor           | N períodos (lorem ipsum)       |
+| Dolor sit amet             | ± Y% consectetur adipiscing      | M períodos (lorem ipsum)       |
+| Consectetur elit           | regra placeholder lorem ipsum    | janela placeholder lorem ipsum |
+
+Sed posuere consectetur est at lobortis. Aenean lacinia bibendum nulla sed consectetur. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
+
+## Como rodar o frontend web
+
+Com o stack Docker:
+
+1. Suba o ambiente com `npm run docker:up`.
+2. Abra http://localhost:4200.
+
+Para desenvolvimento local com hot reload (sem Docker no webapp/API):
 
 ```bash
-# Run e2e tests
-npx nx run pulse-fx-webapp-e2e:e2e
+npm install
+npx nx serve pulse-fx-webapp
+```
 
-# Run e2e tests in CI mode
+Esse comando sobe o Vite em http://localhost:4200 e também inicia `pulse-fx-api` em http://localhost:3333. As chamadas `/api` do frontend são proxied para a API.
+
+Para servir só a API:
+
+```bash
+npx nx serve pulse-fx-api
+```
+
+## Como rodar testes e lint
+
+```bash
+# Lint de todos os projetos
+npx nx run-many -t lint
+
+# Testes unitários (Vitest)
+npx nx run-many -t test
+
+# Typecheck
+npx nx run-many -t typecheck
+
+# Lint, testes e build em paralelo
+npx nx run-many -t lint test build --parallel=3
+```
+
+Projeto específico:
+
+```bash
+npx nx lint pulse-fx-webapp
+npx nx test pulse-fx-webapp
+npx nx test @org/shop-data
+npx nx lint pulse-fx-api
+```
+
+Testes e2e (Playwright):
+
+```bash
+npx nx e2e pulse-fx-webapp-e2e
 npx nx run pulse-fx-webapp-e2e:e2e-ci
 ```
-
-[Learn more about E2E testing →](https://nx.dev/docs/technologies/test-tools/playwright)
-
-### 3. ⚡ Vitest for Unit Testing
-
-Fast unit testing with Vitest for React libraries:
-
-```bash
-# Test a specific library
-npx nx run @org/shop-data:test
-
-# Test all projects
-npx nx run-many -t test
-```
-
-[Learn more about Vite testing →](https://nx.dev/docs/technologies/build-tools/vite)
-
-### 4. 🔧 Self-Healing CI
-
-The CI pipeline includes `nx fix-ci` which automatically identifies and suggests fixes for common issues:
-
-```bash
-# In CI, this command provides automated fixes
-npx nx fix-ci
-```
-
-This feature helps maintain a healthy CI pipeline by automatically detecting and suggesting solutions for:
-
-- Missing dependencies
-- Incorrect task configurations
-- Cache invalidation issues
-- Common build failures
-
-[Learn more about self-healing CI →](https://nx.dev/docs/features/ci-features/self-healing-ci)
-
-## 📁 Project Structure
-
-```
-├── apps/
-│   ├── pulse-fx-webapp/      [scope:shop]    - React e-commerce app
-│   ├── pulse-fx-webapp-e2e/                   - E2E tests for webapp
-│   └── pulse-fx-api/         [scope:api]     - Backend API
-├── packages/
-│   ├── shop/
-│   │   ├── feature-products/        [scope:shop,type:feature] - Product listing
-│   │   ├── feature-product-detail/  [scope:shop,type:feature] - Product details
-│   │   ├── data/                    [scope:shop,type:data]    - Data access
-│   │   └── shared-ui/               [scope:shop,type:ui]      - UI components
-│   ├── api/
-│   │   └── products/    [scope:api]    - Product service
-│   └── shared/
-│       ├── models/      [scope:shared,type:data] - Shared models
-│       └── test-utils/  [scope:shared]           - Testing utilities
-├── nx.json             - Nx configuration
-├── tsconfig.json       - TypeScript configuration
-└── eslint.config.mjs   - ESLint with module boundary rules
-```
-
-## 🏷️ Understanding Tags
-
-This repository uses tags to enforce module boundaries:
-
-| Project                 | Tags                         | Can Import From              |
-| ----------------------- | ---------------------------- | ---------------------------- |
-| `pulse-fx-webapp`       | `scope:shop`                 | `scope:shop`, `scope:shared` |
-| `pulse-fx-api`          | `scope:api`                  | `scope:api`, `scope:shared`  |
-| `shop-feature-products` | `scope:shop`, `type:feature` | `scope:shop`, `scope:shared` |
-| `shop-data`             | `scope:shop`, `type:data`    | `scope:shared`               |
-| `models`                | `scope:shared`, `type:data`  | Nothing (base library)       |
-
-## 📚 Useful Commands
-
-```bash
-# Project exploration
-npx nx graph                                    # Interactive dependency graph
-npx nx list                                     # List installed plugins
-npx nx show project pulse-fx-webapp --web                 # View project details
-
-# Development
-npx nx run pulse-fx-webapp:serve                              # Serve React app
-npx nx run pulse-fx-api:serve                               # Serve backend API
-npx nx run pulse-fx-webapp:build                        # Build React app
-npm run docker:up                                       # Start webapp, API, and Postgres
-npm run docker:down                                     # Stop Docker Compose stack
-npx nx run @org/shop-data:test                          # Test a specific library
-npx nx run @org/shop-feature-products:lint              # Lint a specific library
-
-# Running multiple tasks
-npx nx run-many -t build                       # Build all projects
-npx nx run-many -t test --parallel=3          # Test in parallel
-npx nx run-many -t lint test build            # Run multiple targets
-
-# Affected commands (great for CI)
-npx nx affected -t build                       # Build only affected projects
-npx nx affected -t test                        # Test only affected projects
-```
-
-## 🎯 Adding New Features
-
-### Generate a new React application:
-
-```bash
-npx nx g @nx/react:app my-app
-```
-
-### Generate a new React library:
-
-```bash
-npx nx g @nx/react:lib my-lib
-```
-
-### Generate a new React component:
-
-```bash
-npx nx g @nx/react:component my-component --project=my-lib
-```
-
-### Generate a new API library:
-
-```bash
-npx nx g @nx/node:lib my-api-lib
-```
-
-You can use `npx nx list` to see all available plugins and `npx nx list <plugin-name>` to see all generators for a specific plugin.
-
-## Nx Cloud
-
-Nx Cloud ensures a [fast and scalable CI](https://nx.dev/nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/docs/features/ci-features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/docs/features/ci-features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/docs/features/ci-features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/docs/features/ci-features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/docs/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## 🔗 Learn More
-
-- [Nx Documentation](https://nx.dev/docs)
-- [Crafting Your Workspace Tutorial](https://nx.dev/docs/getting-started/tutorials/crafting-your-workspace)
-- [Module Boundaries](https://nx.dev/docs/features/enforce-module-boundaries)
-- [Playwright Testing](https://nx.dev/docs/technologies/test-tools/playwright)
-- [Vite](https://nx.dev/docs/technologies/build-tools/vite)
-- [Docker Integration](https://nx.dev/docs/guides/nx-release/release-docker-images)
-- [Nx Cloud](https://nx.dev/nx-cloud)
-
-## 💬 Community
-
-Join the Nx community:
-
-- [Discord](https://go.nx.dev/community)
-- [X (Twitter)](https://twitter.com/nxdevtools)
-- [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [YouTube](https://www.youtube.com/@nxdevtools)
-- [Blog](https://nx.dev/blog)
