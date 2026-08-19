@@ -1,138 +1,260 @@
-# Desafio técnico — Full Stack · **Pulse FX**
+# Nx React Repository
 
-**Prazo:** 3 dias corridos a partir do recebimento deste briefing.  
-**Nome do produto:** Pulse FX (uso exclusivo neste desafio; sem reaproveitamento comercial).
+<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
----
+✨ A repository showcasing key [Nx](https://nx.dev) features for React monorepos ✨
+🚀 If you haven't connected to Nx Cloud yet, [complete your setup here](https://cloud.nx.app/get-started). Get faster builds with remote caching, distributed task execution, and self-healing CI. [See how your workspace can benefit](#nx-cloud).
 
-## 1. Contexto
+## 📦 Project Overview
 
-Construir um **MVP** chamado **Pulse FX**: aplicação para acompanhar **câmbio (BRL)** e **indicadores macro** a partir de **fontes públicas**, com dados **persistidos**, **API própria** e cliente **web** de qualidade próxima à produção. O objetivo é avaliar **domínio de produto**, **engenharia backend e frontend**, **dados**, **testes** e **reprodutibilidade** da solução (incluindo **containerização** conforme a tabela abaixo).
+This repository demonstrates a production-ready React monorepo with:
 
-### Avaliação: resultado final e sinais de engenharia
+- **2 Applications**
 
-A banca considera **também aspectos implícitos** — **não apenas** se o MVP funciona no estado final da entrega. Podem influenciar o julgamento, entre outros: **estrutura e organização do código**, **sequência e qualidade das mensagens de commit**, **arquitetura e modularização**, **organização do repositório** (com **preferência por monorepo**: um único repositório Git reunindo frontend web, backend e artefatos compartilhados; outro formato **só** se **justificado** no README), **pastas e limites entre pacotes/serviços**, **documentação útil** e **demais práticas** de engenharia de software perceptíveis no histórico e no código. Critérios de peso detalhados são **internos** ao processo seletivo.
+  - `shop` - React e-commerce application with product listings and detail views
+  - `api` - Backend API serving product data
 
----
+- **7 Libraries**
 
-## 2. Stack obrigatória e alinhamento à vaga
+  - `@org/shop-feature-products` - Product listing feature (React)
+  - `@org/shop-feature-product-detail` - Product detail feature (React)
+  - `@org/shop-data` - Data access layer for shop features
+  - `@org/shop-shared-ui` - Shared UI components
+  - `@org/models` - Shared data models
+  - `@org/api-products` - API product service library
+  - `@org/shared-test-utils` - Shared testing utilities
 
-| Área | Requisito |
-|------|-----------|
-| **Frontend** | **Web** com **React** + **TypeScript**. |
-| **Backend** | **Node.js** + **TypeScript**, código de **produção** (camadas, SOLID, Clean Code) — não prova de conceito descartável. |
-| **Dados** | **PostgreSQL** é o banco de dados obrigatório. |
-| **Containerização** | **Docker** + **Docker Compose** (API, PostgreSQL e demais serviços necessários à solução). |
-| **Testes** | Mínimo de **5 arquivos de teste** (ver seção 7). |
+- **E2E Testing**
+  - `shop-e2e` - Playwright tests for the shop application
 
----
+## 🚀 Quick Start
 
-## 3. Fontes de dados
+```bash
+# Clone the repository
+git clone <your-fork-url>
+cd <your-repository-name>
 
-- **Obrigatório:** integrar dados de **duas fontes distintas**, incluindo:
-  - **BCB** (dados abertos / séries — ex.: câmbio);
-  - **FRED** (Federal Reserve Economic Data — API com chave).
-- **Escolha das séries:** **o candidato define** quais indicadores expor (mínimo um conjunto coerente para o Pulse FX), lê a **documentação oficial** de cada fonte e explica **em 2–5 linhas por indicador** por que faz sentido para o usuário.
+# Install dependencies
+npm install
 
-### Fontes de referência (URLs)
+# Serve the React shop application (this will simultaneously serve the API backend)
+npx nx run @org/shop:serve
 
-Referências de partida; o candidato deve **confirmar** endpoints, parâmetros e termos de uso na documentação vigente.
+# ...or you can serve the API separately
+npx nx run @org/api:serve
 
-| Fonte | Descrição (resumo) | URL principal |
-|--------|---------------------|---------------|
-| **BCB — Dados Abertos** | Catálogos e conjuntos de dados públicos do Banco Central do Brasil. | https://dadosabertos.bcb.gov.br/ |
-| **BCB — Olinda (PTAX)** | API de câmbio (ex.: taxas de fechamento PTAX); documentação interativa (Swagger). | https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/swagger-ui3/ |
-| **BCB — SGS (séries temporais)** | Portal de localização e metadados de séries do Sistema Gerenciador de Séries Temporais (códigos de série, periodicidade). | https://www3.bcb.gov.br/sgspub/ |
-| **FRED — portal** | Séries econômicas dos EUA e de outros provedores agregados pelo Federal Reserve Bank of St. Louis. | https://fred.stlouisfed.org/ |
-| **FRED — documentação da API** | Parâmetros, limites e exemplos de chamadas (`fred/series/observations`, etc.). | https://fred.stlouisfed.org/docs/api/fred/ |
-| **FRED — chave de API** | Registro e gestão de API key. | https://fredaccount.stlouisfed.org/apikeys |
-| **IPEADATA** *(opcional)* | Séries socioeconômicas do Ipea (Brasil); útil como fonte extra se o desenho do MVP fizer sentido. | https://www.ipeadata.gov.br/ |
-| **World Bank Open Data — API** *(opcional)* | Indicadores de desenvolvimento (mundo); exige leitura da documentação de indicadores e países. | https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation |
+# Build all projects
+npx nx run-many -t build
 
----
+# Run tests
+npx nx run-many -t test
 
-## 4. Funcionalidades (MVP)
+# Lint all projects
+npx nx run-many -t lint
 
-1. **Dashboard (web):** cards com nome do indicador, **último valor**, **data de referência** da observação e **variação percentual** segundo regras documentadas (seção 5).
-2. **Detalhe (web):** série temporal (tabela ou gráfico simples), janela de histórico por tipo de série, texto sobre **limitações dos dados**.
-3. **“Meus indicadores”:** permitir marcar/desmarcar favoritos com **persistência real** no backend (ou estratégia híbrida **documentada** no README).
-4. **Sincronização:** política clara de **atualização** (TTL, job agendado, endpoint admin protegido, etc.) que **evite** chamadas descontroladas ou redundantes às APIs externas.
-5. **Disclaimer** visível: informação **educacional**; **não** é recomendação de investimento.
+# Run e2e tests
+npx nx run @org/shop-e2e:e2e
 
----
+# Run tasks in parallel
 
-## 5. Variação percentual (regra de negócio)
+npx nx run-many -t lint test build e2e --parallel=3
 
-O candidato deve **definir, implementar e documentar** a variação **por indicador ou por tipo de série** (ex.: FX diário vs macro mensal).
+# Visualize the project graph
+npx nx graph
+```
 
-**Requisitos:**
+## ⭐ Featured Nx Capabilities
 
-- **Último valor** = observação mais recente **válida** já persistida (alinhada à política de sync/cache).
-- **Data de referência** = data da observação exibida (não confundir com “hora da consulta”).
-- **Variação %** com denominador explícito, por exemplo:
-  - **Séries diárias (FX):** comparar último fechamento com o valor de **N dias úteis** anteriores com dado disponível (o candidato fixa N e justifica).
-  - **Séries mensais (macro):** comparar último mês com **N meses** anteriores (N fixo e justificado — não usar “últimos 5 dias” em série mensal).
-- **Consistência:** mesma regra no **dashboard** e na **tela de detalhe**.
-- **Calendário:** documentar tratamento de **fins de semana / feriados / lacunas** (ex.: último dado conhecido vs interpolação — interpolação de mercado financeiro costuma ser desaconselhada; preferir regra simples e honesta).
+This repository showcases several powerful Nx features:
 
----
+### 1. 🔒 Module Boundaries
 
-## 6. Entregáveis
+Enforces architectural constraints using tags. Each project has specific dependencies it can use:
 
-- **Monorepo:** um **único** repositório Git contendo **frontend web**, **backend** e demais pacotes necessários ao MVP, com **README raiz** único contendo:
-  - como subir o ambiente (**Docker Compose**);
-  - variáveis de ambiente;
-  - decisões técnicas relevantes e trade-offs;
-  - séries escolhidas + URLs/documentação de referência;
-  - regras de **variação** e **janela de histórico** por tipo de série;
-  - como rodar o **frontend web**;
-  - como rodar **testes** e **lint**.
-- **Migrations** PostgreSQL versionadas.
-- **Opcional recomendado:** vídeo de 2–3 min ou screenshots do fluxo completo.
+- `scope:shared` - Can be used by all projects
+- `scope:shop` - Shop-specific libraries
+- `scope:api` - API-specific libraries
+- `type:feature` - Feature libraries
+- `type:data` - Data access libraries
+- `type:ui` - UI component libraries
 
----
+**Try it out:**
 
-## 7. Testes automatizados
+```bash
+# See the current project graph and boundaries
+npx nx graph
 
-**Mínimo: 5 arquivos de teste** com sufixo convencional, por exemplo:
+# View a specific project's details
+npx nx show project @org/shop --web
+```
 
-- `*.test.ts`, `*.spec.ts`, `*.test.tsx`, `*.spec.tsx`
+[Learn more about module boundaries →](https://nx.dev/docs/features/enforce-module-boundaries)
 
-**O que conta:**
+### 2. 🎭 Playwright E2E Testing
 
-- Arquivos com **casos de teste reais** (assertivas sobre comportamento).
-- **Não** contar: arquivos vazios, apenas `describe` sem `it`, ou duplicação artificial do mesmo teste renomeada só para bater número.
+End-to-end testing with Playwright is pre-configured:
 
-**Distribuição sugerida (referência, não obrigatória):**
+```bash
+# Run e2e tests
+npx nx run @org/shop-e2e:e2e
 
-1. Regra de **domínio** (ex.: cálculo de variação / normalização de datas).
-2. **Persistência** ou repositório.
-3. **HTTP** (rota/handler da API).
-4. **Frontend web** (componente **ou** hook com lógica relevante).
-5. **Integração** (ex.: API + PostgreSQL com ambiente de teste, ou estratégia equivalente documentada).
+# Run e2e tests in CI mode
+npx nx run @org/shop-e2e:e2e-ci
+```
 
-Cobertura em **%** não é critério; **qualidade** e **relevância** dos testes sim.
+[Learn more about E2E testing →](https://nx.dev/docs/technologies/test-tools/playwright)
 
----
+### 3. ⚡ Vitest for Unit Testing
 
-## 8. Fora de escopo
+Fast unit testing with Vitest for React libraries:
 
-Trading, ordens, conta bancária, pagamentos, KYC completo, recomendação de investimento, streaming tick-by-tick, multi-tenant enterprise.
+```bash
+# Test a specific library
+npx nx run @org/shop-data:test
 
----
+# Test all projects
+npx nx run-many -t test
+```
 
-## 9. Submissão
+[Learn more about Vite testing →](https://nx.dev/docs/technologies/build-tools/vite)
 
-- Link do repositório (GitHub/GitLab) com histórico de commits **coerente** com o trabalho (evitar um único commit monolítico gigante no último minuto).
-- Instruções claras para **rodar localmente em menos de 15 minutos** em máquina com Docker (quando aplicável).
+### 4. 🔧 Self-Healing CI
 
----
+The CI pipeline includes `nx fix-ci` which automatically identifies and suggests fixes for common issues:
 
-## 10. Dúvidas
+```bash
+# In CI, this command provides automated fixes
+npx nx fix-ci
+```
 
-Esclarecimentos **gerais** de interpretação do enunciado podem ser solicitados em **até 1 e-mail/mensagem**; respostas objetivas não incluem solução de desenho nem código.
+This feature helps maintain a healthy CI pipeline by automatically detecting and suggesting solutions for:
 
----
+- Missing dependencies
+- Incorrect task configurations
+- Cache invalidation issues
+- Common build failures
 
-**Versão do briefing:** 1.9  
-**Última atualização:** 2026-06-10
+[Learn more about self-healing CI →](https://nx.dev/docs/features/ci-features/self-healing-ci)
+
+## 📁 Project Structure
+
+```
+├── apps/
+│   ├── shop/           [scope:shop]    - React e-commerce app
+│   ├── shop-e2e/                       - E2E tests for shop
+│   └── api/            [scope:api]     - Backend API
+├── packages/
+│   ├── shop/
+│   │   ├── feature-products/        [scope:shop,type:feature] - Product listing
+│   │   ├── feature-product-detail/  [scope:shop,type:feature] - Product details
+│   │   ├── data/                    [scope:shop,type:data]    - Data access
+│   │   └── shared-ui/               [scope:shop,type:ui]      - UI components
+│   ├── api/
+│   │   └── products/    [scope:api]    - Product service
+│   └── shared/
+│       ├── models/      [scope:shared,type:data] - Shared models
+│       └── test-utils/  [scope:shared]           - Testing utilities
+├── nx.json             - Nx configuration
+├── tsconfig.json       - TypeScript configuration
+└── eslint.config.mjs   - ESLint with module boundary rules
+```
+
+## 🏷️ Understanding Tags
+
+This repository uses tags to enforce module boundaries:
+
+| Project                 | Tags                         | Can Import From              |
+| ----------------------- | ---------------------------- | ---------------------------- |
+| `shop`                  | `scope:shop`                 | `scope:shop`, `scope:shared` |
+| `api`                   | `scope:api`                  | `scope:api`, `scope:shared`  |
+| `shop-feature-products` | `scope:shop`, `type:feature` | `scope:shop`, `scope:shared` |
+| `shop-data`             | `scope:shop`, `type:data`    | `scope:shared`               |
+| `models`                | `scope:shared`, `type:data`  | Nothing (base library)       |
+
+## 📚 Useful Commands
+
+```bash
+# Project exploration
+npx nx graph                                    # Interactive dependency graph
+npx nx list                                     # List installed plugins
+npx nx show project @org/shop --web                 # View project details
+
+# Development
+npx nx run @org/shop:serve                              # Serve React app
+npx nx run @org/api:serve                               # Serve backend API
+npx nx run @org/shop:build                              # Build React app
+npx nx run @org/shop-data:test                          # Test a specific library
+npx nx run @org/shop-feature-products:lint              # Lint a specific library
+
+# Running multiple tasks
+npx nx run-many -t build                       # Build all projects
+npx nx run-many -t test --parallel=3          # Test in parallel
+npx nx run-many -t lint test build            # Run multiple targets
+
+# Affected commands (great for CI)
+npx nx affected -t build                       # Build only affected projects
+npx nx affected -t test                        # Test only affected projects
+```
+
+## 🎯 Adding New Features
+
+### Generate a new React application:
+
+```bash
+npx nx g @nx/react:app my-app
+```
+
+### Generate a new React library:
+
+```bash
+npx nx g @nx/react:lib my-lib
+```
+
+### Generate a new React component:
+
+```bash
+npx nx g @nx/react:component my-component --project=my-lib
+```
+
+### Generate a new API library:
+
+```bash
+npx nx g @nx/node:lib my-api-lib
+```
+
+You can use `npx nx list` to see all available plugins and `npx nx list <plugin-name>` to see all generators for a specific plugin.
+
+## Nx Cloud
+
+Nx Cloud ensures a [fast and scalable CI](https://nx.dev/nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+
+- [Remote caching](https://nx.dev/docs/features/ci-features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- [Task distribution across multiple machines](https://nx.dev/docs/features/ci-features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- [Automated e2e test splitting](https://nx.dev/docs/features/ci-features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- [Task flakiness detection and rerunning](https://nx.dev/docs/features/ci-features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+
+## Install Nx Console
+
+Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+
+[Install Nx Console &raquo;](https://nx.dev/docs/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+
+## 🔗 Learn More
+
+- [Nx Documentation](https://nx.dev/docs)
+- [Crafting Your Workspace Tutorial](https://nx.dev/docs/getting-started/tutorials/crafting-your-workspace)
+- [Module Boundaries](https://nx.dev/docs/features/enforce-module-boundaries)
+- [Playwright Testing](https://nx.dev/docs/technologies/test-tools/playwright)
+- [Vite](https://nx.dev/docs/technologies/build-tools/vite)
+- [Docker Integration](https://nx.dev/docs/guides/nx-release/release-docker-images)
+- [Nx Cloud](https://nx.dev/nx-cloud)
+
+## 💬 Community
+
+Join the Nx community:
+
+- [Discord](https://go.nx.dev/community)
+- [X (Twitter)](https://twitter.com/nxdevtools)
+- [LinkedIn](https://www.linkedin.com/company/nrwl)
+- [YouTube](https://www.youtube.com/@nxdevtools)
+- [Blog](https://nx.dev/blog)
