@@ -11,12 +11,6 @@
     },
     {
       "path": "./apps/pulse-fx-webapp"
-    },
-    {
-      "path": "./packages/api/products"
-    },
-    {
-      "path": "./packages/shared/models"
     }
   ]
 }

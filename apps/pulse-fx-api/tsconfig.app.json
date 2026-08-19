@@ -18,13 +18,5 @@
     "eslint.config.js",
     "eslint.config.cjs",
     "eslint.config.mjs"
-  ],
-  "references": [
-    {
-      "path": "../../packages/shared/models/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/api/products/tsconfig.lib.json"
-    }
   ]
 }

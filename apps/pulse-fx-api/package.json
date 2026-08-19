@@ -124,8 +124,6 @@
     "name": "pulse-fx-api"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "@org/api-products": "*",
-    "@org/models": "*"
+    "express": "^4.21.2"
   }
 }
