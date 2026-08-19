@@ -1,39 +1,38 @@
 import { render } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 
 import App from './app';
+
+const routerFuture = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+};
 
 describe('App', () => {
   it('should render successfully', () => {
     const { baseElement } = render(
-      <BrowserRouter
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter future={routerFuture}>
         <App />
-      </BrowserRouter>,
+      </MemoryRouter>,
     );
     expect(baseElement).toBeTruthy();
   });
 
-  it('should render the dashboard title', () => {
+  it('should render the dashboard on the home route', () => {
     const { getByText } = render(
-      <BrowserRouter
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter future={routerFuture}>
         <App />
-      </BrowserRouter>,
+      </MemoryRouter>,
     );
     expect(getByText('Dashboard')).toBeInTheDocument();
   });
 
-  it('should render the dashboard copy', () => {
+  it('should redirect unknown routes to the dashboard', () => {
     const { getByText } = render(
-      <BrowserRouter
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter initialEntries={['/unknown']} future={routerFuture}>
         <App />
-      </BrowserRouter>,
+      </MemoryRouter>,
     );
-    expect(getByText(/Lorem ipsum dolor sit amet/i)).toBeInTheDocument();
+    expect(getByText('Dashboard')).toBeInTheDocument();
   });
 });
