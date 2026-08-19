@@ -1,24 +1,39 @@
+import { CardIndicator } from '../../components/card-indicator';
+import { useCards } from '../../data/use-cards';
 import './dashboard.css';
 
 export function DashboardPage() {
+  const { cards, loading, error } = useCards();
+
   return (
     <>
       <header className="app-header">
         <div className="header-content">
-          <h1 className="app-title">Dashboard</h1>
+          <h1 className="app-title">Dashboard - Pulse FX</h1>
         </div>
       </header>
 
       <main className="app-main">
         <section className="dashboard">
           <p className="dashboard-copy">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur.
+            Mercados e indicadores macroeconômicos
           </p>
+          {loading && <p className="dashboard-status">Carregando...</p>}
+          {error && <p className="dashboard-status">{error}</p>}
+          {!loading && !error && (
+            <div className="dashboard-cards">
+              {cards.map((card) => (
+                <CardIndicator
+                  key={card.name}
+                  name={card.name}
+                  price={card.price}
+                  percentage={card.percentage}
+                  indicator={card.indicator}
+                  referenceDate={card.referenceDate}
+                />
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </>

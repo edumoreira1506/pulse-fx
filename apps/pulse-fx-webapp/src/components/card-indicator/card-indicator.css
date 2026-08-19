@@ -1,0 +1,45 @@
+.card-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 200px;
+  padding: 20px 24px;
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card-indicator:hover,
+.card-indicator:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.card-indicator-name {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.card-indicator-value {
+  margin-top: 28px;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  font-weight: 400;
+}
+
+.card-indicator-variation {
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
+.card-indicator-date {
+  margin-top: auto;
+  padding-top: 32px;
+  font-size: 0.95rem;
+}

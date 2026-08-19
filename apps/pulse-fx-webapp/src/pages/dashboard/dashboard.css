@@ -35,6 +35,18 @@
   color: #444;
 }
 
+.dashboard-status {
+  margin-top: 24px;
+  color: #666;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
 @media (max-width: 768px) {
   .app-title {
     font-size: 1.5rem;
@@ -44,5 +56,9 @@
   .dashboard {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .dashboard-cards {
+    grid-template-columns: 1fr;
   }
 }
