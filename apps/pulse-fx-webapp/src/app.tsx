@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { DashboardPage } from '../pages/dashboard';
+import { DashboardPage } from './pages/dashboard';
 import './app.css';
 
 export function App() {
