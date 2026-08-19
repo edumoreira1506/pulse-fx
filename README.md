@@ -11,8 +11,8 @@ This repository demonstrates a production-ready React monorepo with:
 
 - **2 Applications**
 
-  - `shop` - React e-commerce application with product listings and detail views
-  - `api` - Backend API serving product data
+  - `pulse-fx-webapp` - React e-commerce application with product listings and detail views
+  - `pulse-fx-api` - Backend API serving product data
 
 - **7 Libraries**
 
@@ -25,7 +25,7 @@ This repository demonstrates a production-ready React monorepo with:
   - `@org/shared-test-utils` - Shared testing utilities
 
 - **E2E Testing**
-  - `shop-e2e` - Playwright tests for the shop application
+  - `pulse-fx-webapp-e2e` - Playwright tests for the webapp
 
 ## 🚀 Quick Start
 
@@ -38,10 +38,10 @@ cd <your-repository-name>
 npm install
 
 # Serve the React shop application (this will simultaneously serve the API backend)
-npx nx run @org/shop:serve
+npx nx run pulse-fx-webapp:serve
 
 # ...or you can serve the API separately
-npx nx run @org/api:serve
+npx nx run pulse-fx-api:serve
 
 # Build all projects
 npx nx run-many -t build
@@ -53,7 +53,7 @@ npx nx run-many -t test
 npx nx run-many -t lint
 
 # Run e2e tests
-npx nx run @org/shop-e2e:e2e
+npx nx run pulse-fx-webapp-e2e:e2e
 
 # Run tasks in parallel
 
@@ -85,7 +85,7 @@ Enforces architectural constraints using tags. Each project has specific depende
 npx nx graph
 
 # View a specific project's details
-npx nx show project @org/shop --web
+npx nx show project pulse-fx-webapp --web
 ```
 
 [Learn more about module boundaries →](https://nx.dev/docs/features/enforce-module-boundaries)
@@ -96,10 +96,10 @@ End-to-end testing with Playwright is pre-configured:
 
 ```bash
 # Run e2e tests
-npx nx run @org/shop-e2e:e2e
+npx nx run pulse-fx-webapp-e2e:e2e
 
 # Run e2e tests in CI mode
-npx nx run @org/shop-e2e:e2e-ci
+npx nx run pulse-fx-webapp-e2e:e2e-ci
 ```
 
 [Learn more about E2E testing →](https://nx.dev/docs/technologies/test-tools/playwright)
@@ -140,9 +140,9 @@ This feature helps maintain a healthy CI pipeline by automatically detecting and
 
 ```
 ├── apps/
-│   ├── shop/           [scope:shop]    - React e-commerce app
-│   ├── shop-e2e/                       - E2E tests for shop
-│   └── api/            [scope:api]     - Backend API
+│   ├── pulse-fx-webapp/      [scope:shop]    - React e-commerce app
+│   ├── pulse-fx-webapp-e2e/                   - E2E tests for webapp
+│   └── pulse-fx-api/         [scope:api]     - Backend API
 ├── packages/
 │   ├── shop/
 │   │   ├── feature-products/        [scope:shop,type:feature] - Product listing
@@ -165,8 +165,8 @@ This repository uses tags to enforce module boundaries:
 
 | Project                 | Tags                         | Can Import From              |
 | ----------------------- | ---------------------------- | ---------------------------- |
-| `shop`                  | `scope:shop`                 | `scope:shop`, `scope:shared` |
-| `api`                   | `scope:api`                  | `scope:api`, `scope:shared`  |
+| `pulse-fx-webapp`       | `scope:shop`                 | `scope:shop`, `scope:shared` |
+| `pulse-fx-api`          | `scope:api`                  | `scope:api`, `scope:shared`  |
 | `shop-feature-products` | `scope:shop`, `type:feature` | `scope:shop`, `scope:shared` |
 | `shop-data`             | `scope:shop`, `type:data`    | `scope:shared`               |
 | `models`                | `scope:shared`, `type:data`  | Nothing (base library)       |
@@ -177,12 +177,12 @@ This repository uses tags to enforce module boundaries:
 # Project exploration
 npx nx graph                                    # Interactive dependency graph
 npx nx list                                     # List installed plugins
-npx nx show project @org/shop --web                 # View project details
+npx nx show project pulse-fx-webapp --web                 # View project details
 
 # Development
-npx nx run @org/shop:serve                              # Serve React app
-npx nx run @org/api:serve                               # Serve backend API
-npx nx run @org/shop:build                              # Build React app
+npx nx run pulse-fx-webapp:serve                              # Serve React app
+npx nx run pulse-fx-api:serve                               # Serve backend API
+npx nx run pulse-fx-webapp:build                        # Build React app
 npx nx run @org/shop-data:test                          # Test a specific library
 npx nx run @org/shop-feature-products:lint              # Lint a specific library
 

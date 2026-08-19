@@ -24,7 +24,7 @@ export default defineConfig({
   },
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npx nx run @org/shop:preview',
+    command: 'npx nx run pulse-fx-webapp:preview',
     url: 'http://localhost:4200',
     reuseExistingServer: true,
     cwd: workspaceRoot,

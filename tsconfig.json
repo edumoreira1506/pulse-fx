@@ -4,13 +4,13 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/api"
+      "path": "./apps/pulse-fx-api"
     },
     {
-      "path": "./apps/shop-e2e"
+      "path": "./apps/pulse-fx-webapp-e2e"
     },
     {
-      "path": "./apps/shop"
+      "path": "./apps/pulse-fx-webapp"
     },
     {
       "path": "./packages/api/products"

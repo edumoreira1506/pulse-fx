@@ -2,9 +2,9 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   root: import.meta.dirname,
-  cacheDir: '../../node_modules/.vite/apps/api',
+  cacheDir: '../../node_modules/.vite/apps/pulse-fx-api',
   test: {
-    name: '@org/api',
+    name: 'pulse-fx-api',
     watch: false,
     globals: true,
     environment: 'node',
