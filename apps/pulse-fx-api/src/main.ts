@@ -7,7 +7,7 @@ import {
   PaginatedResponse,
 } from '@org/models';
 
-const host = process.env.HOST ?? 'localhost';
+const host = process.env.HOST ?? '0.0.0.0';
 const port = process.env.PORT ? Number(process.env.PORT) : 3333;
 
 const app = express();
@@ -33,6 +33,10 @@ app.use((req, res, next) => {
 
 app.get('/', (req, res) => {
   res.send({ message: 'Hello API' });
+});
+
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
 });
 
 // Products endpoints

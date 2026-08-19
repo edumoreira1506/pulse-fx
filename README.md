@@ -37,7 +37,13 @@ cd <your-repository-name>
 # Install dependencies
 npm install
 
-# Serve the React shop application (this will simultaneously serve the API backend)
+# Start the full local stack (webapp, API, Postgres) with Docker Compose
+npm run docker:up
+
+# Stop the stack
+npm run docker:down
+
+# Or serve without Docker (this will simultaneously serve the API backend)
 npx nx run pulse-fx-webapp:serve
 
 # ...or you can serve the API separately
@@ -62,6 +68,29 @@ npx nx run-many -t lint test build e2e --parallel=3
 # Visualize the project graph
 npx nx graph
 ```
+
+## 🐳 Docker Compose
+
+The local stack runs the webapp, API, and Postgres together:
+
+```bash
+# Build the apps and start every service
+npm run docker:up
+
+# Same, in the background
+npm run docker:up:detached
+
+# Stop containers (keeps the Postgres volume)
+npm run docker:down
+```
+
+| Service  | URL                   |
+| -------- | --------------------- |
+| Webapp   | http://localhost:4200 |
+| API      | http://localhost:3333 |
+| Postgres | `localhost:5433`      |
+
+Copy `.env.example` to `.env` to change ports or database credentials. The API container already receives `DATABASE_URL` for when Postgres is wired up.
 
 ## ⭐ Featured Nx Capabilities
 
@@ -183,6 +212,8 @@ npx nx show project pulse-fx-webapp --web                 # View project details
 npx nx run pulse-fx-webapp:serve                              # Serve React app
 npx nx run pulse-fx-api:serve                               # Serve backend API
 npx nx run pulse-fx-webapp:build                        # Build React app
+npm run docker:up                                       # Start webapp, API, and Postgres
+npm run docker:down                                     # Stop Docker Compose stack
 npx nx run @org/shop-data:test                          # Test a specific library
 npx nx run @org/shop-feature-products:lint              # Lint a specific library
 

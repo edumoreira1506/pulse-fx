@@ -1,0 +1,66 @@
+name: pulse-fx
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pulse-fx-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pulse_fx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulse_fx}
+      POSTGRES_DB: ${POSTGRES_DB:-pulse_fx}
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-pulse_fx} -d ${POSTGRES_DB:-pulse_fx}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    container_name: pulse-fx-api
+    build:
+      context: ./apps/pulse-fx-api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3333
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pulse_fx}:${POSTGRES_PASSWORD:-pulse_fx}@postgres:5432/${POSTGRES_DB:-pulse_fx}
+    ports:
+      - '${API_PORT:-3333}:3333'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3333/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  webapp:
+    container_name: pulse-fx-webapp
+    build:
+      context: ./apps/pulse-fx-webapp
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - '${WEBAPP_PORT:-4200}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
