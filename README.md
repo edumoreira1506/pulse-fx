@@ -30,14 +30,14 @@ O script `docker:up` faz o build da API e do webapp e em seguida sobe o Compose 
 
 Copie `.env.example` para `.env` para sobrescrever os defaults do Compose.
 
-| Variável            | Default     | Uso                                      |
-| ------------------- | ----------- | ---------------------------------------- |
-| `POSTGRES_USER`     | `pulse_fx`  | Usuário do Postgres                      |
-| `POSTGRES_PASSWORD` | `pulse_fx`  | Senha do Postgres                        |
-| `POSTGRES_DB`       | `pulse_fx`  | Nome do banco                            |
-| `POSTGRES_PORT`     | `5433`      | Porta do Postgres no host                |
-| `API_PORT`          | `3333`      | Porta da API no host                     |
-| `WEBAPP_PORT`       | `4200`      | Porta do webapp no host                  |
+| Variável            | Default    | Uso                       |
+| ------------------- | ---------- | ------------------------- |
+| `POSTGRES_USER`     | `pulse_fx` | Usuário do Postgres       |
+| `POSTGRES_PASSWORD` | `pulse_fx` | Senha do Postgres         |
+| `POSTGRES_DB`       | `pulse_fx` | Nome do banco             |
+| `POSTGRES_PORT`     | `5433`     | Porta do Postgres no host |
+| `API_PORT`          | `3333`     | Porta da API no host      |
+| `WEBAPP_PORT`       | `4200`     | Porta do webapp no host   |
 
 A API recebe automaticamente `DATABASE_URL` no formato:
 
@@ -61,11 +61,11 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Curabitur blandit tempus porttitor.
 
-| Série                         | Fonte / documentação                                              |
-| ----------------------------- | ----------------------------------------------------------------- |
-| Lorem ipsum dolor sit amet    | https://example.com/docs/lorem-ipsum                              |
-| Consectetur adipiscing elit   | https://example.com/docs/consectetur                              |
-| Sed do eiusmod tempor         | https://example.com/docs/tempor                                   |
+| Série                       | Fonte / documentação                 |
+| --------------------------- | ------------------------------------ |
+| Lorem ipsum dolor sit amet  | https://example.com/docs/lorem-ipsum |
+| Consectetur adipiscing elit | https://example.com/docs/consectetur |
+| Sed do eiusmod tempor       | https://example.com/docs/tempor      |
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper.
 
@@ -73,11 +73,11 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas faucibus molli
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam quis risus eget urna mollis ornare vel eu leo.
 
-| Tipo de série              | Variação                         | Janela de histórico            |
-| -------------------------- | -------------------------------- | ------------------------------ |
-| Lorem ipsum                | ± X% lorem ipsum dolor           | N períodos (lorem ipsum)       |
-| Dolor sit amet             | ± Y% consectetur adipiscing      | M períodos (lorem ipsum)       |
-| Consectetur elit           | regra placeholder lorem ipsum    | janela placeholder lorem ipsum |
+| Tipo de série    | Variação                      | Janela de histórico            |
+| ---------------- | ----------------------------- | ------------------------------ |
+| Lorem ipsum      | ± X% lorem ipsum dolor        | N períodos (lorem ipsum)       |
+| Dolor sit amet   | ± Y% consectetur adipiscing   | M períodos (lorem ipsum)       |
+| Consectetur elit | regra placeholder lorem ipsum | janela placeholder lorem ipsum |
 
 Sed posuere consectetur est at lobortis. Aenean lacinia bibendum nulla sed consectetur. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
 
@@ -124,7 +124,6 @@ Projeto específico:
 ```bash
 npx nx lint pulse-fx-webapp
 npx nx test pulse-fx-webapp
-npx nx test @org/shop-data
 npx nx lint pulse-fx-api
 ```
 

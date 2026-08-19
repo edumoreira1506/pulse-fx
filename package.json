@@ -71,8 +71,7 @@
   "workspaces": [
     "apps/*",
     "packages/api/products",
-    "packages/shared/*",
-    "packages/shop/*"
+    "packages/shared/*"
   ],
   "optionalDependencies": {
     "@rolldown/binding-darwin-x64": "1.2.5",

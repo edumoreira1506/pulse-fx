@@ -15,7 +15,7 @@ describe('App', () => {
     expect(baseElement).toBeTruthy();
   });
 
-  it('should have a greeting as the title', () => {
+  it('should render the dashboard title', () => {
     const { getByText } = render(
       <BrowserRouter
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
@@ -23,6 +23,17 @@ describe('App', () => {
         <App />
       </BrowserRouter>,
     );
-    expect(getByText('Nx Shop Demo')).toBeInTheDocument();
+    expect(getByText('Dashboard')).toBeInTheDocument();
+  });
+
+  it('should render the dashboard copy', () => {
+    const { getByText } = render(
+      <BrowserRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <App />
+      </BrowserRouter>,
+    );
+    expect(getByText(/Lorem ipsum dolor sit amet/i)).toBeInTheDocument();
   });
 });

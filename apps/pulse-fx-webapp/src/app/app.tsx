@@ -1,38 +1,34 @@
-import { lazy, Suspense } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
-import { LoadingSpinner } from '@org/shop-shared-ui';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import './app.css';
-
-// Lazy load feature components
-const ProductList = lazy(() =>
-  import('@org/shop-feature-products').then((m) => ({
-    default: m.ProductList,
-  })),
-);
-const ProductDetail = lazy(() =>
-  import('@org/shop-feature-product-detail').then((m) => ({
-    default: m.ProductDetail,
-  })),
-);
 
 export function App() {
   return (
     <div className="app">
       <header className="app-header">
         <div className="header-content">
-          <h1 className="app-title">Nx Shop Demo</h1>
+          <h1 className="app-title">Dashboard</h1>
         </div>
       </header>
 
       <main className="app-main">
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/products" replace />} />
-            <Route path="/products" element={<ProductList />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-            <Route path="*" element={<Navigate to="/products" replace />} />
-          </Routes>
-        </Suspense>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <section className="dashboard">
+                <p className="dashboard-copy">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                  laboris nisi ut aliquip ex ea commodo consequat. Duis aute
+                  irure dolor in reprehenderit in voluptate velit esse cillum
+                  dolore eu fugiat nulla pariatur.
+                </p>
+              </section>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
     </div>
   );
