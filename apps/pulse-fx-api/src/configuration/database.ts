@@ -1,7 +1,9 @@
 import { existsSync } from 'node:fs';
 import { DataSource } from 'typeorm';
 import { Observation } from '../entities/observation.entity';
+import { Favorite } from '../entities/favorite.entity';
 import { CreateObservations20260820132100 } from '../migrations/20260820132100-CreateObservations';
+import { CreateFavorites20260820133000 } from '../migrations/20260820133000-CreateFavorites';
 
 if (!process.env.DATABASE_URL && existsSync('.env')) {
   process.loadEnvFile('.env');
@@ -17,8 +19,11 @@ function createDataSource(): DataSource {
   return new DataSource({
     type: 'postgres',
     url,
-    entities: [Observation],
-    migrations: [CreateObservations20260820132100],
+    entities: [Observation, Favorite],
+    migrations: [
+      CreateObservations20260820132100,
+      CreateFavorites20260820133000,
+    ],
     synchronize: false,
     logging: false,
   });
