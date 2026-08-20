@@ -5,8 +5,10 @@ import {
 } from '../services/olinda.service';
 import {
   FED_FUNDS_SERIES_ID,
+  US_CPI_SERIES_ID,
   getSeriesObservations,
   parseFredValue,
+  type FredObservation,
 } from '../services/fred.service';
 
 export type CardType = 'price' | 'percentage';
@@ -22,19 +24,6 @@ export interface Card {
   description: string;
 }
 
-const HARDCODED_CARDS: Card[] = [
-  {
-    name: 'US CPI',
-    identifier: 'us-cpi',
-    type: 'percentage',
-    price: null,
-    percentage: 2.7,
-    indicator: 0.1,
-    referenceDate: '2026-07-01',
-    description: 'Comparando com mês anterior',
-  },
-];
-
 // Janela em dias corridos enviada à Olinda. Precisa ser maior que
 // “hoje + 5 dias úteis” para cobrir fins de semana e feriados.
 const CALENDAR_LOOKBACK_DAYS = 14;
@@ -42,12 +31,13 @@ const CALENDAR_LOOKBACK_DAYS = 14;
 const FX_QUOTE_DAYS = 1 + 5;
 
 export async function listCards(): Promise<Card[]> {
-  const [usdBrl, eurBrl, fedFunds] = await Promise.all([
+  const [usdBrl, eurBrl, fedFunds, usCpi] = await Promise.all([
     getUsdBrlCard(),
     getEurBrlCard(),
     getFedFundsCard(),
+    getUsCpiCard(),
   ]);
-  return [usdBrl, eurBrl, fedFunds, ...HARDCODED_CARDS];
+  return [usdBrl, eurBrl, fedFunds, usCpi];
 }
 
 export async function getUsdBrlCard(): Promise<Card> {
@@ -72,24 +62,8 @@ export async function getEurBrlCard(): Promise<Card> {
 
 export async function getFedFundsCard(): Promise<Card> {
   // Série mensal FEDFUNDS: taxa efetiva dos fed funds.
-  const observations = await getSeriesObservations(FED_FUNDS_SERIES_ID, 6);
-  const monthlyValues = observations
-    .map((observation) => ({
-      date: observation.date,
-      value: parseFredValue(observation.value),
-    }))
-    .filter(
-      (observation): observation is { date: string; value: number } =>
-        observation.value != null,
-    )
-    .sort((left, right) => left.date.localeCompare(right.date));
-
-  if (monthlyValues.length < 2) {
-    throw new Error('Not enough observations to build Fed Funds card');
-  }
-
-  const current = monthlyValues[monthlyValues.length - 1];
-  const previous = monthlyValues[monthlyValues.length - 2];
+  const monthlyValues = await getMonthlyFredValues(FED_FUNDS_SERIES_ID);
+  const { current, previous } = latestFredPair(monthlyValues, 'Fed Funds');
   // Variação em pontos percentuais em relação ao mês anterior (4,33 → 4,33 = 0).
   const indicator = roundToTwo(current.value - previous.value);
 
@@ -102,6 +76,68 @@ export async function getFedFundsCard(): Promise<Card> {
     indicator,
     referenceDate: current.date,
     description: 'Comparando com mês anterior',
+  };
+}
+
+export async function getUsCpiCard(): Promise<Card> {
+  // CPIAUCSL é o nível do índice, não a inflação. A inflação mensal é
+  // ((atual - anterior) / anterior) * 100.
+  const monthlyValues = await getMonthlyFredValues(US_CPI_SERIES_ID);
+  const { current, previous } = latestFredPair(monthlyValues, 'US CPI');
+  const monthlyInflation =
+    previous.value === 0
+      ? 0
+      : ((current.value - previous.value) / previous.value) * 100;
+  const inflation = roundToTwo(monthlyInflation);
+
+  return {
+    name: 'US CPI',
+    identifier: 'us-cpi',
+    type: 'percentage',
+    price: null,
+    percentage: inflation,
+    indicator: inflation,
+    referenceDate: current.date,
+    description: 'Comparando com mês anterior',
+  };
+}
+
+async function getMonthlyFredValues(
+  seriesId: string,
+): Promise<Array<{ date: string; value: number }>> {
+  const observations = await getSeriesObservations(seriesId, 6);
+  return toMonthlyFredValues(observations);
+}
+
+function toMonthlyFredValues(
+  observations: FredObservation[],
+): Array<{ date: string; value: number }> {
+  return observations
+    .map((observation) => ({
+      date: observation.date,
+      value: parseFredValue(observation.value),
+    }))
+    .filter(
+      (observation): observation is { date: string; value: number } =>
+        observation.value != null,
+    )
+    .sort((left, right) => left.date.localeCompare(right.date));
+}
+
+function latestFredPair(
+  monthlyValues: Array<{ date: string; value: number }>,
+  cardName: string,
+): {
+  current: { date: string; value: number };
+  previous: { date: string; value: number };
+} {
+  if (monthlyValues.length < 2) {
+    throw new Error(`Not enough observations to build ${cardName} card`);
+  }
+
+  return {
+    current: monthlyValues[monthlyValues.length - 1],
+    previous: monthlyValues[monthlyValues.length - 2],
   };
 }
 

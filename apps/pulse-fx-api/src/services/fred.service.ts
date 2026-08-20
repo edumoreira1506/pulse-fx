@@ -4,6 +4,7 @@ const FRED_OBSERVATIONS_URL =
   'https://api.stlouisfed.org/fred/series/observations';
 
 export const FED_FUNDS_SERIES_ID = 'FEDFUNDS';
+export const US_CPI_SERIES_ID = 'CPIAUCSL';
 
 export interface FredObservation {
   date: string;

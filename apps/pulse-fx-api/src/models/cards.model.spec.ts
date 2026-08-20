@@ -1,4 +1,10 @@
-import { getEurBrlCard, getFedFundsCard, getUsdBrlCard, listCards } from './cards.model';
+import {
+  getEurBrlCard,
+  getFedFundsCard,
+  getUsCpiCard,
+  getUsdBrlCard,
+  listCards,
+} from './cards.model';
 import { getCurrencyQuotes, getDollarQuotes } from '../services/olinda.service';
 import { getSeriesObservations } from '../services/fred.service';
 
@@ -172,14 +178,57 @@ describe('getFedFundsCard', () => {
   });
 });
 
+describe('getUsCpiCard', () => {
+  it('should map monthly inflation from the CPI index', async () => {
+    vi.mocked(getSeriesObservations).mockResolvedValue([
+      { date: '2026-07-01', value: '322.40' },
+      { date: '2026-06-01', value: '321.50' },
+      { date: '2026-05-01', value: '320.10' },
+    ]);
+
+    const card = await getUsCpiCard();
+
+    expect(getSeriesObservations).toHaveBeenCalledWith('CPIAUCSL', 6);
+    expect(card).toMatchObject({
+      name: 'US CPI',
+      identifier: 'us-cpi',
+      type: 'percentage',
+      price: null,
+      percentage: 0.28,
+      indicator: 0.28,
+      referenceDate: '2026-07-01',
+      description: 'Comparando com mês anterior',
+    });
+  });
+
+  it('should throw when there are not enough observations', async () => {
+    vi.mocked(getSeriesObservations).mockResolvedValue([
+      { date: '2026-07-01', value: '322.40' },
+    ]);
+
+    await expect(getUsCpiCard()).rejects.toThrow(
+      'Not enough observations to build US CPI card',
+    );
+  });
+});
+
 describe('listCards', () => {
-  it('should put the live FX cards first', async () => {
+  it('should put the live FX and FRED cards first', async () => {
     vi.mocked(getDollarQuotes).mockResolvedValue(usdQuotes);
     vi.mocked(getCurrencyQuotes).mockResolvedValue(eurQuotes);
-    vi.mocked(getSeriesObservations).mockResolvedValue([
-      { date: '2026-07-01', value: '4.33' },
-      { date: '2026-06-01', value: '4.33' },
-    ]);
+    vi.mocked(getSeriesObservations).mockImplementation(async (seriesId) => {
+      if (seriesId === 'CPIAUCSL') {
+        return [
+          { date: '2026-07-01', value: '322.40' },
+          { date: '2026-06-01', value: '321.50' },
+        ];
+      }
+
+      return [
+        { date: '2026-07-01', value: '4.33' },
+        { date: '2026-06-01', value: '4.33' },
+      ];
+    });
 
     const cards = await listCards();
 
