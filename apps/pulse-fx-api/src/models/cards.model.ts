@@ -363,8 +363,8 @@ function buildFxPriceCard({
     ...copy,
     identifier,
     type: 'price',
-    // Front-end espera o preço em centavos (5,17 → 517).
-    price: Math.round(current.cotacaoVenda * 100),
+    // Front-end espera o preço em centavos, truncado (5,1862 → 518).
+    price: toTruncatedCents(current.cotacaoVenda),
     percentage: null,
     indicator: roundToTwo(indicator),
     // Data da cotação mais recente retornada pela Olinda.
@@ -396,6 +396,11 @@ function toIsoDate(dataHoraCotacao: string): string {
 
 function roundToTwo(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+function toTruncatedCents(value: number): number {
+  const [whole, fraction = ''] = value.toFixed(8).split('.');
+  return Number.parseInt(`${whole}${fraction.slice(0, 2).padEnd(2, '0')}`, 10);
 }
 
 function getBrazilCalendarDate(now = new Date()): Date {

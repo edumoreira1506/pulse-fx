@@ -36,6 +36,16 @@ test.describe('Dashboard', () => {
     ).toBeVisible();
   });
 
+  test('should open card history from a card click', async ({ page }) => {
+    await page.getByRole('button', { name: /Dólar \/ Real/ }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Histórico de Dólar \/ Real/ }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/card=usd-brl/);
+    await expect(page).toHaveURL(/period=LAST_5_BUSINESS_DAY/);
+  });
+
   test('should redirect unknown routes to home', async ({ page }) => {
     await page.goto('/unknown');
     await expect(page).toHaveURL(/\/$/);

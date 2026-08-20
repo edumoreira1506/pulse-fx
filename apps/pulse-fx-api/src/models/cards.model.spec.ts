@@ -158,6 +158,21 @@ describe('getUsdBrlCard', () => {
     });
   });
 
+  it('should truncate the FX price to cents without rounding', async () => {
+    vi.mocked(getDollarQuotes).mockResolvedValue([
+      ...usdQuotes.slice(0, 5),
+      {
+        cotacaoCompra: 5.1855,
+        cotacaoVenda: 5.1862,
+        dataHoraCotacao: '2026-08-19 13:07:22.062208',
+      },
+    ]);
+
+    const card = await getUsdBrlCard();
+
+    expect(card.price).toBe(518);
+  });
+
   it('should use cached FX observations instead of the API', async () => {
     const today = brazilTodayDate();
     const cached = Array.from({ length: 6 }, (_, index) => {

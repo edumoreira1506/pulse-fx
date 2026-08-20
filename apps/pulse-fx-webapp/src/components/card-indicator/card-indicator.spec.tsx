@@ -14,6 +14,7 @@ const usdBrl = {
   description: 'Comparando com 5 dias úteis anteriores',
   tooltip: usdBrlTooltip,
   isFavorite: false,
+  onOpen: vi.fn(),
   onFavoriteToggle: vi.fn(),
 };
 
@@ -28,10 +29,15 @@ const fedFunds = {
   tooltip:
     'Taxa efetiva média dos empréstimos de curtíssimo prazo entre instituições financeiras dos EUA. A variação compara percentualmente a observação mensal mais recente com a do mês anterior.',
   isFavorite: true,
+  onOpen: vi.fn(),
   onFavoriteToggle: vi.fn(),
 };
 
 describe('CardIndicator', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('should render a priced card', () => {
     const { getByText, getByRole, getByLabelText } = render(
       <CardIndicator {...usdBrl} />,
@@ -66,52 +72,48 @@ describe('CardIndicator', () => {
     ).toBeInTheDocument();
   });
 
-  it('should alert the card name when clicked', () => {
-    const alertSpy = vi
-      .spyOn(window, 'alert')
-      .mockImplementation(() => undefined);
-    const { getByRole } = render(<CardIndicator {...usdBrl} />);
+  it('should open the card details when clicked', () => {
+    const onOpen = vi.fn();
+    const { getByRole } = render(
+      <CardIndicator {...usdBrl} onOpen={onOpen} />,
+    );
 
     fireEvent.click(getByRole('button', { name: 'USD / BRL' }));
 
-    expect(alertSpy).toHaveBeenCalledWith('USD / BRL');
-    alertSpy.mockRestore();
+    expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
-  it('should not alert when the date is clicked', () => {
-    const alertSpy = vi
-      .spyOn(window, 'alert')
-      .mockImplementation(() => undefined);
-    const { getByText } = render(<CardIndicator {...usdBrl} />);
+  it('should not open details when the date is clicked', () => {
+    const onOpen = vi.fn();
+    const { getByText } = render(
+      <CardIndicator {...usdBrl} onOpen={onOpen} />,
+    );
 
     fireEvent.click(getByText('18 Ago 2026'));
 
-    expect(alertSpy).not.toHaveBeenCalled();
-    alertSpy.mockRestore();
+    expect(onOpen).not.toHaveBeenCalled();
   });
 
-  it('should not alert when the variation is clicked', () => {
-    const alertSpy = vi
-      .spyOn(window, 'alert')
-      .mockImplementation(() => undefined);
-    const { getByText } = render(<CardIndicator {...usdBrl} />);
+  it('should not open details when the variation is clicked', () => {
+    const onOpen = vi.fn();
+    const { getByText } = render(
+      <CardIndicator {...usdBrl} onOpen={onOpen} />,
+    );
 
     fireEvent.click(getByText(/\+1,37%/));
 
-    expect(alertSpy).not.toHaveBeenCalled();
-    alertSpy.mockRestore();
+    expect(onOpen).not.toHaveBeenCalled();
   });
 
-  it('should not alert when the info icon is clicked', () => {
-    const alertSpy = vi
-      .spyOn(window, 'alert')
-      .mockImplementation(() => undefined);
-    const { getByLabelText } = render(<CardIndicator {...usdBrl} />);
+  it('should not open details when the info icon is clicked', () => {
+    const onOpen = vi.fn();
+    const { getByLabelText } = render(
+      <CardIndicator {...usdBrl} onOpen={onOpen} />,
+    );
 
     fireEvent.click(getByLabelText('Sobre USD / BRL'));
 
-    expect(alertSpy).not.toHaveBeenCalled();
-    alertSpy.mockRestore();
+    expect(onOpen).not.toHaveBeenCalled();
   });
 
   it('should render an empty heart when the card is not a favorite', () => {
@@ -132,13 +134,15 @@ describe('CardIndicator', () => {
     );
   });
 
-  it('should toggle favorite without alerting the card name', async () => {
+  it('should toggle favorite without opening details', async () => {
     const onFavoriteToggle = vi.fn().mockResolvedValue(undefined);
-    const alertSpy = vi
-      .spyOn(window, 'alert')
-      .mockImplementation(() => undefined);
+    const onOpen = vi.fn();
     const { getByLabelText } = render(
-      <CardIndicator {...usdBrl} onFavoriteToggle={onFavoriteToggle} />,
+      <CardIndicator
+        {...usdBrl}
+        onOpen={onOpen}
+        onFavoriteToggle={onFavoriteToggle}
+      />,
     );
 
     fireEvent.click(getByLabelText('Adicionar aos favoritos'));
@@ -146,7 +150,6 @@ describe('CardIndicator', () => {
     await waitFor(() => {
       expect(onFavoriteToggle).toHaveBeenCalledTimes(1);
     });
-    expect(alertSpy).not.toHaveBeenCalled();
-    alertSpy.mockRestore();
+    expect(onOpen).not.toHaveBeenCalled();
   });
 });

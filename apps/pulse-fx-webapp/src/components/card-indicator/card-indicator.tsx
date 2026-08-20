@@ -18,6 +18,7 @@ export interface CardIndicatorProps {
   description: string;
   tooltip: string;
   isFavorite: boolean;
+  onOpen: () => void;
   onFavoriteToggle: () => Promise<void> | void;
 }
 
@@ -116,6 +117,7 @@ export function CardIndicator({
   description,
   tooltip,
   isFavorite,
+  onOpen,
   onFavoriteToggle,
 }: CardIndicatorProps) {
   const { arrow, label } = formatIndicator(indicator);
@@ -126,7 +128,7 @@ export function CardIndicator({
       type="button"
       className="card-indicator"
       aria-label={name}
-      onClick={() => alert(name)}
+      onClick={onOpen}
     >
       <span className="card-indicator-header">
         <span className="card-indicator-name">{name}</span>

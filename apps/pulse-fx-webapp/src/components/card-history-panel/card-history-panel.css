@@ -1,0 +1,101 @@
+.card-history-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  border: 0;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.card-history-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  width: min(520px, 100%);
+  height: 100%;
+  padding: 24px;
+  background: #000;
+  color: #fff;
+  border-left: 1px solid #fff;
+  overflow: auto;
+}
+
+.card-history-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.card-history-title {
+  margin: 0;
+  flex: 1;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.card-history-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: transparent;
+  color: inherit;
+  border: 1px solid #fff;
+  cursor: pointer;
+}
+
+.card-history-close:hover,
+.card-history-close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.card-history-period {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 24px;
+  font-size: 0.875rem;
+}
+
+.card-history-period select {
+  width: 100%;
+  padding: 10px 12px;
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  font: inherit;
+}
+
+.card-history-chart {
+  flex: 1;
+  min-height: 280px;
+  margin-top: 24px;
+}
+
+.card-history-status {
+  margin-top: 24px;
+  color: #ccc;
+}
+
+@media (max-width: 768px) {
+  .card-history-panel {
+    width: 100%;
+    border-left: none;
+    padding: 16px;
+  }
+
+  .card-history-title {
+    font-size: 1.125rem;
+  }
+
+  .card-history-chart {
+    min-height: 320px;
+  }
+}

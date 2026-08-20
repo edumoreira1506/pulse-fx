@@ -1,9 +1,28 @@
+import { CardHistoryPanel } from '../../components/card-history-panel';
 import { CardIndicator } from '../../components/card-indicator';
+import { useCardDetailsSearch } from '../../data/use-card-details-search';
+import { useCardHistory } from '../../data/use-card-history';
 import { useCards } from '../../data/use-cards';
+import {
+  getHistoryPeriodOptions,
+  isMonthlyCardIdentifier,
+  resolveHistoryPeriod,
+} from '../../utils/history-periods';
 import './dashboard.css';
 
 export function DashboardPage() {
   const { cards, loading, error, toggleFavorite } = useCards();
+  const { cardId, periodParam, openCard, setPeriod, close } =
+    useCardDetailsSearch();
+  const selectedCard =
+    cards.find((card) => card.identifier === cardId) ?? null;
+  const selectedPeriod = selectedCard
+    ? resolveHistoryPeriod(selectedCard.identifier, periodParam)
+    : null;
+  const history = useCardHistory(
+    selectedCard?.identifier ?? null,
+    selectedPeriod,
+  );
 
   return (
     <>
@@ -34,6 +53,7 @@ export function DashboardPage() {
                   description={card.description}
                   tooltip={card.tooltip}
                   isFavorite={card.isFavorite}
+                  onOpen={() => openCard(card.identifier)}
                   onFavoriteToggle={() =>
                     toggleFavorite(card.identifier, card.isFavorite)
                   }
@@ -43,6 +63,21 @@ export function DashboardPage() {
           )}
         </section>
       </main>
+
+      {selectedCard && selectedPeriod && (
+        <CardHistoryPanel
+          name={selectedCard.name}
+          period={selectedPeriod}
+          periodOptions={getHistoryPeriodOptions(selectedCard.identifier)}
+          items={history.items}
+          loading={history.loading}
+          error={history.error}
+          isMonthly={isMonthlyCardIdentifier(selectedCard.identifier)}
+          valueType={selectedCard.type}
+          onPeriodChange={setPeriod}
+          onClose={close}
+        />
+      )}
     </>
   );
 }

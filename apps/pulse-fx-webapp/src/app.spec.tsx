@@ -2,7 +2,7 @@ import { render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import App from './app';
-import { getCards } from './services/cards.service';
+import { getCardHistory, getCards } from './services/cards.service';
 
 const routerFuture = {
   v7_startTransition: true,
@@ -11,6 +11,7 @@ const routerFuture = {
 
 vi.mock('./services/cards.service', () => ({
   getCards: vi.fn(),
+  getCardHistory: vi.fn(),
 }));
 
 async function renderApp(initialEntries?: string[]) {
@@ -30,6 +31,7 @@ async function renderApp(initialEntries?: string[]) {
 describe('App', () => {
   beforeEach(() => {
     vi.mocked(getCards).mockResolvedValue([]);
+    vi.mocked(getCardHistory).mockResolvedValue([]);
   });
 
   it('should render successfully', async () => {
