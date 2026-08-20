@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getCards } from '../controllers/cards.controller';
+import { getCardHistory, getCards } from '../controllers/cards.controller';
 import {
   postFavorite,
   removeFavorite,
@@ -12,5 +12,6 @@ routes.get('/', (_req, res) => {
 });
 
 routes.get('/cards', getCards);
+routes.get('/cards/:cardIndicatorId/history', getCardHistory);
 routes.post('/favorites', postFavorite);
 routes.delete('/favorites/:cardIndicatorId', removeFavorite);
