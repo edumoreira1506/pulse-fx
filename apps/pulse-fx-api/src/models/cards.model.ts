@@ -1,4 +1,8 @@
-import { getDollarQuotes, type DollarQuote } from '../services/olinda.service';
+import {
+  getCurrencyQuotes,
+  getDollarQuotes,
+  type PtaxQuote,
+} from '../services/olinda.service';
 
 export type CardType = 'price' | 'percentage';
 
@@ -14,16 +18,6 @@ export interface Card {
 }
 
 const HARDCODED_CARDS: Card[] = [
-  {
-    name: 'EUR / BRL',
-    identifier: 'eur-brl',
-    type: 'price',
-    price: 631,
-    percentage: null,
-    indicator: -0.82,
-    referenceDate: '2026-08-18',
-    description: 'Comparando com 5 dias úteis anteriores',
-  },
   {
     name: 'Fed Funds',
     identifier: 'fed-funds',
@@ -50,27 +44,60 @@ const HARDCODED_CARDS: Card[] = [
 // “hoje + 5 dias úteis” para cobrir fins de semana e feriados.
 const CALENDAR_LOOKBACK_DAYS = 14;
 // Cotações usadas no card: o dia mais recente + 5 dias úteis anteriores.
-const USD_BRL_QUOTE_DAYS = 1 + 5;
+const FX_QUOTE_DAYS = 1 + 5;
 
 export async function listCards(): Promise<Card[]> {
-  const usdBrl = await getUsdBrlCard();
-  return [usdBrl, ...HARDCODED_CARDS];
+  const [usdBrl, eurBrl] = await Promise.all([
+    getUsdBrlCard(),
+    getEurBrlCard(),
+  ]);
+  return [usdBrl, eurBrl, ...HARDCODED_CARDS];
 }
 
 export async function getUsdBrlCard(): Promise<Card> {
+  const { startDate, endDate } = getPtaxPeriod();
+  const quotes = await getDollarQuotes(startDate, endDate);
+  return buildFxPriceCard({
+    name: 'USD / BRL',
+    identifier: 'usd-brl',
+    quotes,
+  });
+}
+
+export async function getEurBrlCard(): Promise<Card> {
+  const { startDate, endDate } = getPtaxPeriod();
+  const quotes = await getCurrencyQuotes('EUR', startDate, endDate);
+  return buildFxPriceCard({
+    name: 'EUR / BRL',
+    identifier: 'eur-brl',
+    quotes,
+  });
+}
+
+function getPtaxPeriod(): { startDate: Date; endDate: Date } {
   // Datas no fuso de Brasília, que é o calendário da PTAX.
   const endDate = getBrazilCalendarDate();
   const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - CALENDAR_LOOKBACK_DAYS);
+  return { startDate, endDate };
+}
 
-  const quotes = await getDollarQuotes(startDate, endDate);
+function buildFxPriceCard({
+  name,
+  identifier,
+  quotes,
+}: {
+  name: string;
+  identifier: string;
+  quotes: PtaxQuote[];
+}): Card {
   // Uma cotação por dia útil, da mais antiga para a mais recente.
   const dailyQuotes = latestQuotePerDay(quotes);
   // Fica só com hoje (ou o último dia com PTAX) e os 5 dias úteis anteriores.
-  const recentQuotes = dailyQuotes.slice(-USD_BRL_QUOTE_DAYS);
+  const recentQuotes = dailyQuotes.slice(-FX_QUOTE_DAYS);
 
-  if (recentQuotes.length < USD_BRL_QUOTE_DAYS) {
-    throw new Error('Not enough dollar quotes to build USD / BRL card');
+  if (recentQuotes.length < FX_QUOTE_DAYS) {
+    throw new Error(`Not enough quotes to build ${name} card`);
   }
 
   const current = recentQuotes[recentQuotes.length - 1];
@@ -83,8 +110,8 @@ export async function getUsdBrlCard(): Promise<Card> {
         100;
 
   return {
-    name: 'USD / BRL',
-    identifier: 'usd-brl',
+    name,
+    identifier,
     type: 'price',
     // Front-end espera o preço em centavos (5,17 → 517).
     price: Math.round(current.cotacaoVenda * 100),
@@ -96,8 +123,8 @@ export async function getUsdBrlCard(): Promise<Card> {
   };
 }
 
-function latestQuotePerDay(quotes: DollarQuote[]): DollarQuote[] {
-  const quotesByDay = new Map<string, DollarQuote>();
+function latestQuotePerDay(quotes: PtaxQuote[]): PtaxQuote[] {
+  const quotesByDay = new Map<string, PtaxQuote>();
 
   for (const quote of quotes) {
     const day = toIsoDate(quote.dataHoraCotacao);

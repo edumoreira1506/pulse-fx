@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { getDollarQuotes } from './olinda.service';
+import { getCurrencyQuotes, getDollarQuotes } from './olinda.service';
 
 vi.mock('axios');
 
 describe('getDollarQuotes', () => {
-  it('should request the Olinda period endpoint and return quotes', async () => {
+  it('should request the Olinda dollar period endpoint and return quotes', async () => {
     const quotes = [
       {
         cotacaoCompra: 5.17,
@@ -25,6 +25,46 @@ describe('getDollarQuotes', () => {
       'https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)',
       expect.objectContaining({
         params: {
+          '@dataInicial': "'08-11-2026'",
+          '@dataFinalCotacao': "'08-20-2026'",
+          $format: 'json',
+        },
+      }),
+    );
+  });
+});
+
+describe('getCurrencyQuotes', () => {
+  it('should request CotacaoMoedaPeriodo and keep only Fechamento quotes', async () => {
+    const quotes = [
+      {
+        cotacaoCompra: 5.95,
+        cotacaoVenda: 5.96,
+        dataHoraCotacao: '2026-08-19 10:05:12.144624',
+        tipoBoletim: 'Abertura',
+      },
+      {
+        cotacaoCompra: 6.03,
+        cotacaoVenda: 6.0324,
+        dataHoraCotacao: '2026-08-19 13:07:22.062208',
+        tipoBoletim: 'Fechamento',
+      },
+    ];
+
+    vi.mocked(axios.get).mockResolvedValue({ data: { value: quotes } });
+
+    const result = await getCurrencyQuotes(
+      'EUR',
+      new Date(2026, 7, 11),
+      new Date(2026, 7, 20),
+    );
+
+    expect(result).toEqual([quotes[1]]);
+    expect(axios.get).toHaveBeenCalledWith(
+      'https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)',
+      expect.objectContaining({
+        params: {
+          '@moeda': "'EUR'",
           '@dataInicial': "'08-11-2026'",
           '@dataFinalCotacao': "'08-20-2026'",
           $format: 'json',

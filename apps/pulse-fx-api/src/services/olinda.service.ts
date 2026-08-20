@@ -1,12 +1,17 @@
 import axios from 'axios';
 
-const OLINDA_DOLLAR_PERIOD_URL =
-  'https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)';
+const OLINDA_ODATA_BASE =
+  'https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata';
 
-export interface DollarQuote {
+const OLINDA_DOLLAR_PERIOD_URL = `${OLINDA_ODATA_BASE}/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)`;
+
+const OLINDA_CURRENCY_PERIOD_URL = `${OLINDA_ODATA_BASE}/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)`;
+
+export interface PtaxQuote {
   cotacaoCompra: number;
   cotacaoVenda: number;
   dataHoraCotacao: string;
+  tipoBoletim?: string;
 }
 
 function formatOlindaDate(date: Date): string {
@@ -19,8 +24,8 @@ function formatOlindaDate(date: Date): string {
 export async function getDollarQuotes(
   startDate: Date,
   endDate: Date,
-): Promise<DollarQuote[]> {
-  const { data } = await axios.get<{ value?: DollarQuote[] }>(
+): Promise<PtaxQuote[]> {
+  const { data } = await axios.get<{ value?: PtaxQuote[] }>(
     OLINDA_DOLLAR_PERIOD_URL,
     {
       params: {
@@ -33,4 +38,26 @@ export async function getDollarQuotes(
   );
 
   return data.value ?? [];
+}
+
+export async function getCurrencyQuotes(
+  currency: string,
+  startDate: Date,
+  endDate: Date,
+): Promise<PtaxQuote[]> {
+  const { data } = await axios.get<{ value?: PtaxQuote[] }>(
+    OLINDA_CURRENCY_PERIOD_URL,
+    {
+      params: {
+        '@moeda': `'${currency}'`,
+        '@dataInicial': `'${formatOlindaDate(startDate)}'`,
+        '@dataFinalCotacao': `'${formatOlindaDate(endDate)}'`,
+        $format: 'json',
+      },
+      timeout: 10_000,
+    },
+  );
+
+  // CotacaoMoedaPeriodo devolve vários boletins por dia; o fechamento é a PTAX oficial.
+  return (data.value ?? []).filter((quote) => quote.tipoBoletim === 'Fechamento');
 }

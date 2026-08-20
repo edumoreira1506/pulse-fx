@@ -1,11 +1,12 @@
-import { getUsdBrlCard, listCards } from './cards.model';
-import { getDollarQuotes } from '../services/olinda.service';
+import { getEurBrlCard, getUsdBrlCard, listCards } from './cards.model';
+import { getCurrencyQuotes, getDollarQuotes } from '../services/olinda.service';
 
 vi.mock('../services/olinda.service', () => ({
   getDollarQuotes: vi.fn(),
+  getCurrencyQuotes: vi.fn(),
 }));
 
-const quotes = [
+const usdQuotes = [
   {
     cotacaoCompra: 5.1279,
     cotacaoVenda: 5.1285,
@@ -43,9 +44,54 @@ const quotes = [
   },
 ];
 
+const eurQuotes = [
+  {
+    cotacaoCompra: 5.9186,
+    cotacaoVenda: 5.9209,
+    dataHoraCotacao: '2026-08-11 13:05:15.80831',
+    tipoBoletim: 'Fechamento',
+  },
+  {
+    cotacaoCompra: 5.9578,
+    cotacaoVenda: 5.9597,
+    dataHoraCotacao: '2026-08-12 13:09:28.609891',
+    tipoBoletim: 'Fechamento',
+  },
+  {
+    cotacaoCompra: 5.978,
+    cotacaoVenda: 5.9799,
+    dataHoraCotacao: '2026-08-13 13:09:15.558931',
+    tipoBoletim: 'Fechamento',
+  },
+  {
+    cotacaoCompra: 6.048,
+    cotacaoVenda: 6.05,
+    dataHoraCotacao: '2026-08-14 13:10:22.94166',
+    tipoBoletim: 'Fechamento',
+  },
+  {
+    cotacaoCompra: 6.027,
+    cotacaoVenda: 6.0289,
+    dataHoraCotacao: '2026-08-17 13:04:48.745527',
+    tipoBoletim: 'Fechamento',
+  },
+  {
+    cotacaoCompra: 6.025,
+    cotacaoVenda: 6.0271,
+    dataHoraCotacao: '2026-08-18 13:10:39.550019',
+    tipoBoletim: 'Fechamento',
+  },
+  {
+    cotacaoCompra: 6.031,
+    cotacaoVenda: 6.0324,
+    dataHoraCotacao: '2026-08-19 13:07:22.062208',
+    tipoBoletim: 'Fechamento',
+  },
+];
+
 describe('getUsdBrlCard', () => {
   it('should map the newest quote and 5-business-day change', async () => {
-    vi.mocked(getDollarQuotes).mockResolvedValue(quotes);
+    vi.mocked(getDollarQuotes).mockResolvedValue(usdQuotes);
 
     const card = await getUsdBrlCard();
 
@@ -62,21 +108,45 @@ describe('getUsdBrlCard', () => {
   });
 
   it('should throw when there are not enough quotes', async () => {
-    vi.mocked(getDollarQuotes).mockResolvedValue(quotes.slice(0, 5));
+    vi.mocked(getDollarQuotes).mockResolvedValue(usdQuotes.slice(0, 5));
 
     await expect(getUsdBrlCard()).rejects.toThrow(
-      'Not enough dollar quotes to build USD / BRL card',
+      'Not enough quotes to build USD / BRL card',
     );
   });
 });
 
+describe('getEurBrlCard', () => {
+  it('should map the newest EUR fechamento quote and 5-business-day change', async () => {
+    vi.mocked(getCurrencyQuotes).mockResolvedValue(eurQuotes);
+
+    const card = await getEurBrlCard();
+
+    expect(getCurrencyQuotes).toHaveBeenCalledWith(
+      'EUR',
+      expect.any(Date),
+      expect.any(Date),
+    );
+    expect(card).toMatchObject({
+      name: 'EUR / BRL',
+      identifier: 'eur-brl',
+      type: 'price',
+      price: 603,
+      percentage: null,
+      indicator: 1.22,
+      referenceDate: '2026-08-19',
+      description: 'Comparando com 5 dias úteis anteriores',
+    });
+  });
+});
+
 describe('listCards', () => {
-  it('should put the live USD / BRL card first', async () => {
-    vi.mocked(getDollarQuotes).mockResolvedValue(quotes);
+  it('should put the live FX cards first', async () => {
+    vi.mocked(getDollarQuotes).mockResolvedValue(usdQuotes);
+    vi.mocked(getCurrencyQuotes).mockResolvedValue(eurQuotes);
 
     const cards = await listCards();
 
-    expect(cards[0]?.identifier).toBe('usd-brl');
     expect(cards.map((card) => card.identifier)).toEqual([
       'usd-brl',
       'eur-brl',
