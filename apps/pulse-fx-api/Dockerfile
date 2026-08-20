@@ -10,7 +10,7 @@ RUN addgroup --system pulse-fx-api && \
 
 COPY dist/main.js ./main.js
 
-RUN npm install --omit=dev express@4.21.2 && \
+RUN npm install --omit=dev express@4.21.2 axios@1.19.0 && \
     chown -R pulse-fx-api:pulse-fx-api /app
 
 USER pulse-fx-api

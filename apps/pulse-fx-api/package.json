@@ -124,6 +124,7 @@
     "name": "pulse-fx-api"
   },
   "dependencies": {
+    "axios": "^1.19.0",
     "express": "^4.21.2"
   }
 }
