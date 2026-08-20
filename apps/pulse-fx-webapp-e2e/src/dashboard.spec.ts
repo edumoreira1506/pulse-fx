@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page, request }) => {
     await expect(async () => {
-      const response = await request.get('http://localhost:3333/');
+      const response = await request.get('http://127.0.0.1:3333/');
       expect(response.ok()).toBeTruthy();
     }).toPass({ timeout: 60_000 });
 

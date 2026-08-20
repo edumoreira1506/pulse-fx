@@ -13,6 +13,22 @@ permissions:
 jobs:
   main:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pulse_fx
+          POSTGRES_PASSWORD: pulse_fx
+          POSTGRES_DB: pulse_fx
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U pulse_fx -d pulse_fx"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://pulse_fx:pulse_fx@localhost:5433/pulse_fx
     steps:
       - uses: actions/checkout@v5
         with:
@@ -30,6 +46,7 @@ jobs:
           node-version: 24
           cache: 'npm'
 
+      - run: test -f .env || cp .env.example .env
       - run: npm ci
       - run: npx playwright install --with-deps
 

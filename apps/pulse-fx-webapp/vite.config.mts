@@ -7,10 +7,10 @@ export default defineConfig(() => ({
   cacheDir: '../../node_modules/.vite/apps/pulse-fx-webapp',
   server: {
     port: 4200,
-    host: 'localhost',
+    host: '127.0.0.1',
     proxy: {
       '/api': {
-        target: 'http://localhost:3333',
+        target: 'http://127.0.0.1:3333',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
@@ -18,10 +18,10 @@ export default defineConfig(() => ({
   },
   preview: {
     port: 4200,
-    host: 'localhost',
+    host: '127.0.0.1',
     proxy: {
       '/api': {
-        target: 'http://localhost:3333',
+        target: 'http://127.0.0.1:3333',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
