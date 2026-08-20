@@ -12,8 +12,15 @@ import './dashboard.css';
 
 export function DashboardPage() {
   const { cards, loading, error, toggleFavorite } = useCards();
-  const { cardId, periodParam, openCard, setPeriod, close } =
-    useCardDetailsSearch();
+  const {
+    cardId,
+    periodParam,
+    showFavoritesOnly,
+    openCard,
+    setPeriod,
+    close,
+    toggleFavoritesOnly,
+  } = useCardDetailsSearch();
   const selectedCard =
     cards.find((card) => card.identifier === cardId) ?? null;
   const selectedPeriod = selectedCard
@@ -23,6 +30,9 @@ export function DashboardPage() {
     selectedCard?.identifier ?? null,
     selectedPeriod,
   );
+  const visibleCards = showFavoritesOnly
+    ? cards.filter((card) => card.isFavorite)
+    : cards;
 
   return (
     <>
@@ -34,14 +44,32 @@ export function DashboardPage() {
 
       <main className="app-main">
         <section className="dashboard">
-          <p className="dashboard-copy">
-            Mercados e indicadores macroeconômicos
-          </p>
+          <div className="dashboard-toolbar">
+            <p className="dashboard-copy">
+              Mercados e indicadores macroeconômicos
+            </p>
+            <button
+              type="button"
+              className={`dashboard-favorites-toggle${
+                showFavoritesOnly ? ' is-active' : ''
+              }`}
+              aria-pressed={showFavoritesOnly}
+              onClick={toggleFavoritesOnly}
+            >
+              Meus indicadores
+            </button>
+          </div>
           {loading && <p className="dashboard-status">Carregando...</p>}
           {error && <p className="dashboard-status">{error}</p>}
-          {!loading && !error && (
+          {!loading && !error && showFavoritesOnly && visibleCards.length === 0 && (
+            <p className="dashboard-status">
+              Nenhum indicador em Meus indicadores. Marque o coração em um card
+              para salvá-lo.
+            </p>
+          )}
+          {!loading && !error && visibleCards.length > 0 && (
             <div className="dashboard-cards">
-              {cards.map((card) => (
+              {visibleCards.map((card) => (
                 <CardIndicator
                   key={card.name}
                   name={card.name}
@@ -64,6 +92,10 @@ export function DashboardPage() {
         </section>
       </main>
 
+      <footer className="app-disclaimer">
+        Informação educacional. Não constitui recomendação de investimento.
+      </footer>
+
       {selectedCard && selectedPeriod && (
         <CardHistoryPanel
           name={selectedCard.name}
@@ -74,6 +106,12 @@ export function DashboardPage() {
           error={history.error}
           isMonthly={isMonthlyCardIdentifier(selectedCard.identifier)}
           valueType={selectedCard.type}
+          price={selectedCard.price}
+          percentage={selectedCard.percentage}
+          indicator={selectedCard.indicator}
+          referenceDate={selectedCard.referenceDate}
+          description={selectedCard.description}
+          limitations={selectedCard.limitations}
           onPeriodChange={setPeriod}
           onClose={close}
         />

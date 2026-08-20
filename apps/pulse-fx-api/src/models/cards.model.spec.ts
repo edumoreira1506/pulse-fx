@@ -229,27 +229,22 @@ describe('getEurBrlCard', () => {
 });
 
 describe('getFedFundsCard', () => {
-  it('should map the latest rate and the month-over-month change', async () => {
+  it('should map the latest rate and the month-over-month percent change', async () => {
     vi.mocked(getSeriesObservations).mockResolvedValue([
-      { date: '2026-07-01', value: '4.33' },
-      { date: '2026-06-01', value: '4.33' },
-      { date: '2026-05-01', value: '4.33' },
+      { date: '2026-07-01', value: '4.50' },
+      { date: '2026-06-01', value: '4.00' },
+      { date: '2026-05-01', value: '4.00' },
     ]);
 
     const card = await getFedFundsCard();
 
-    expect(saveObservations).toHaveBeenCalledWith('fed-funds', [
-      { date: '2026-05-01', value: 4.33 },
-      { date: '2026-06-01', value: 4.33 },
-      { date: '2026-07-01', value: 4.33 },
-    ]);
     expect(card).toMatchObject({
       ...FED_FUNDS_COPY,
       identifier: 'fed-funds',
       type: 'percentage',
       price: null,
-      percentage: 4.33,
-      indicator: 0,
+      percentage: 4.5,
+      indicator: 12.5,
       referenceDate: '2026-07-01',
     });
   });

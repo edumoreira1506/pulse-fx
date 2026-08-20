@@ -21,6 +21,7 @@ const cards = [
     description: 'Comparando com 5 dias úteis anteriores',
     tooltip:
       'Cotação de venda do dólar americano em reais pela PTAX do Banco Central do Brasil. A variação compara a cotação mais recente com a 5ª observação útil anterior disponível, ignorando dias sem cotação.',
+    limitations: 'A PTAX não interpola lacunas.',
     isFavorite: false,
   },
   {
@@ -33,6 +34,7 @@ const cards = [
     referenceDate: '2026-07-01',
     description: 'Comparando com mês anterior',
     tooltip: 'Taxa efetiva média dos fed funds.',
+    limitations: 'Série mensal do FRED, sem interpolação.',
     isFavorite: false,
   },
 ];
@@ -164,5 +166,34 @@ describe('DashboardPage', () => {
     await waitFor(() => {
       expect(queryByText('Histórico de USD / BRL:')).not.toBeInTheDocument();
     });
+  });
+
+  it('should show the educational disclaimer', async () => {
+    const { getByText, queryByText } = renderDashboard();
+    expect(
+      getByText(
+        'Informação educacional. Não constitui recomendação de investimento.',
+      ),
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(queryByText('Carregando...')).not.toBeInTheDocument();
+    });
+  });
+
+  it('should filter the dashboard to favorite cards', async () => {
+    vi.mocked(getCards).mockResolvedValue([
+      { ...cards[0], isFavorite: true },
+      cards[1],
+    ]);
+    const { getByRole, getByText, queryByText } = renderDashboard();
+
+    await waitFor(() => {
+      expect(getByText('USD / BRL')).toBeInTheDocument();
+    });
+
+    fireEvent.click(getByRole('button', { name: 'Meus indicadores' }));
+
+    expect(getByText('USD / BRL')).toBeInTheDocument();
+    expect(queryByText('Juros dos EUA')).not.toBeInTheDocument();
   });
 });

@@ -9,7 +9,9 @@ import {
   YAxis,
 } from 'recharts';
 import type { CardType, HistoryItem, HistoryPeriod } from '../../services/cards.service';
+import { formatValue } from '../../utils/dashboardUtils';
 import { formatReferenceDate } from '../../utils/dateUtils';
+import { formatIndicator } from '../../utils/indicatorUtils';
 import type { HistoryPeriodOption } from '../../utils/history-periods';
 import { formatPercentage, formatReais } from '../../utils/priceUtils';
 import './card-history-panel.css';
@@ -23,6 +25,12 @@ export interface CardHistoryPanelProps {
   error: string | null;
   isMonthly: boolean;
   valueType: CardType;
+  price: number | null;
+  percentage: number | null;
+  indicator: number;
+  referenceDate: string;
+  description: string;
+  limitations: string;
   onPeriodChange: (period: HistoryPeriod) => void;
   onClose: () => void;
 }
@@ -54,11 +62,18 @@ export function CardHistoryPanel({
   error,
   isMonthly,
   valueType,
+  price,
+  percentage,
+  indicator,
+  referenceDate,
+  description,
+  limitations,
   onPeriodChange,
   onClose,
 }: CardHistoryPanelProps) {
   const titleId = useId();
   const periodId = useId();
+  const { arrow, label } = formatIndicator(indicator);
   const chartData = items.map((item) => ({
     ...item,
     label: formatReferenceDate(item.date, isMonthly),
@@ -109,6 +124,28 @@ export function CardHistoryPanel({
             <CloseIcon />
           </button>
         </header>
+
+        <dl className="card-history-stats">
+          <div>
+            <dt>Último valor</dt>
+            <dd>{formatValue(valueType, price, percentage)}</dd>
+          </div>
+          <div>
+            <dt>Variação</dt>
+            <dd>
+              <span aria-hidden="true">{arrow}</span> {label}
+            </dd>
+          </div>
+          <div>
+            <dt>Data de referência</dt>
+            <dd>
+              <time dateTime={referenceDate}>
+                {formatReferenceDate(referenceDate, isMonthly)}
+              </time>
+            </dd>
+          </div>
+        </dl>
+        <p className="card-history-rule">{description}</p>
 
         <label className="card-history-period" htmlFor={periodId}>
           <span>Período</span>
@@ -176,6 +213,14 @@ export function CardHistoryPanel({
             </ResponsiveContainer>
           )}
         </div>
+
+        <section className="card-history-limitations" aria-label="Limitações dos dados">
+          <h3>Limitações dos dados</h3>
+          <p>{limitations}</p>
+          <p className="card-history-disclaimer">
+            Informação educacional. Não constitui recomendação de investimento.
+          </p>
+        </section>
       </aside>
     </div>
   );

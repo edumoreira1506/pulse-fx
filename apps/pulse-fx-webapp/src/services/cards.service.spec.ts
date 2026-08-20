@@ -10,9 +10,10 @@ const usdBrl = {
   indicator: 1.37,
   referenceDate: '2026-08-18',
   description: 'Comparando com 5 dias úteis anteriores',
-  tooltip:
-    'Cotação de venda do dólar americano em reais pela PTAX do Banco Central do Brasil. A variação compara a cotação mais recente com a 5ª observação útil anterior disponível, ignorando dias sem cotação.',
-  isFavorite: false,
+    tooltip:
+      'Cotação de venda do dólar americano em reais pela PTAX do Banco Central do Brasil. A variação compara a cotação mais recente com a 5ª observação útil anterior disponível, ignorando dias sem cotação.',
+    limitations: 'A PTAX não interpola lacunas.',
+    isFavorite: false,
 };
 
 vi.mock('./api', () => ({

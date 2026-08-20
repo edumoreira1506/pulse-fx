@@ -30,6 +30,14 @@ test.describe('Dashboard', () => {
     await expect(copy).toBeVisible();
   });
 
+  test('should display the educational disclaimer', async ({ page }) => {
+    await expect(
+      page.getByText(
+        'Informação educacional. Não constitui recomendação de investimento.',
+      ),
+    ).toBeVisible();
+  });
+
   test('should display indicator cards from the API', async ({ page }) => {
     await expect(
       page.getByRole('button', { name: /Dólar \/ Real/ }),

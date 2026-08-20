@@ -30,21 +30,30 @@ vi.mock('recharts', () => ({
 
 const fxOptions = getHistoryPeriodOptions('usd-brl');
 
+const panelProps = {
+  name: 'Dólar / Real',
+  period: 'LAST_5_BUSINESS_DAY' as const,
+  periodOptions: fxOptions,
+  items: [] as Array<{ date: string; value: number }>,
+  loading: false,
+  error: null as string | null,
+  isMonthly: false,
+  valueType: 'price' as const,
+  price: 517,
+  percentage: null,
+  indicator: 0.15,
+  referenceDate: '2026-08-19',
+  description: 'Comparando com 5 dias úteis anteriores',
+  limitations:
+    'A PTAX não é publicada em fins de semana e feriados. Não interpolamos lacunas.',
+  onPeriodChange: vi.fn(),
+  onClose: vi.fn(),
+};
+
 describe('CardHistoryPanel', () => {
   it('should render the title, period options and loading state', () => {
     const { getByText, getByLabelText } = render(
-      <CardHistoryPanel
-        name="Dólar / Real"
-        period="LAST_5_BUSINESS_DAY"
-        periodOptions={fxOptions}
-        items={[]}
-        loading
-        error={null}
-        isMonthly={false}
-        valueType="price"
-        onPeriodChange={vi.fn()}
-        onClose={vi.fn()}
-      />,
+      <CardHistoryPanel {...panelProps} loading items={[]} />,
     );
 
     expect(getByText('Histórico de Dólar / Real:')).toBeInTheDocument();
@@ -54,25 +63,20 @@ describe('CardHistoryPanel', () => {
   });
 
   it('should render chart points when history is loaded', () => {
-    const { getByTestId, queryByText } = render(
+    const { getByTestId, queryByText, getByText } = render(
       <CardHistoryPanel
-        name="Dólar / Real"
-        period="LAST_5_BUSINESS_DAY"
-        periodOptions={fxOptions}
+        {...panelProps}
         items={[
           { date: '2026-08-18', value: 5.1714 },
           { date: '2026-08-19', value: 5.2043 },
         ]}
-        loading={false}
-        error={null}
-        isMonthly={false}
-        valueType="price"
-        onPeriodChange={vi.fn()}
-        onClose={vi.fn()}
       />,
     );
 
     expect(queryByText('Carregando...')).not.toBeInTheDocument();
+    expect(getByText('Último valor')).toBeInTheDocument();
+    expect(getByText('Limitações dos dados')).toBeInTheDocument();
+    expect(getByText(panelProps.limitations)).toBeInTheDocument();
     expect(getByTestId('line-chart')).toHaveTextContent('2026-08-18');
     expect(getByTestId('line-chart')).toHaveTextContent('2026-08-19');
   });
@@ -81,16 +85,8 @@ describe('CardHistoryPanel', () => {
     const onPeriodChange = vi.fn();
     const { getByLabelText } = render(
       <CardHistoryPanel
-        name="Dólar / Real"
-        period="LAST_5_BUSINESS_DAY"
-        periodOptions={fxOptions}
-        items={[]}
-        loading={false}
-        error={null}
-        isMonthly={false}
-        valueType="price"
+        {...panelProps}
         onPeriodChange={onPeriodChange}
-        onClose={vi.fn()}
       />,
     );
 
@@ -104,18 +100,7 @@ describe('CardHistoryPanel', () => {
   it('should close from the header button', () => {
     const onClose = vi.fn();
     const { getByLabelText } = render(
-      <CardHistoryPanel
-        name="Dólar / Real"
-        period="LAST_5_BUSINESS_DAY"
-        periodOptions={fxOptions}
-        items={[]}
-        loading={false}
-        error={null}
-        isMonthly={false}
-        valueType="price"
-        onPeriodChange={vi.fn()}
-        onClose={onClose}
-      />,
+      <CardHistoryPanel {...panelProps} onClose={onClose} />,
     );
 
     fireEvent.click(getByLabelText('Fechar'));

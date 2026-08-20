@@ -30,6 +30,7 @@ export interface Card {
   referenceDate: string;
   description: string;
   tooltip: string;
+  limitations: string;
   isFavorite: boolean;
 }
 
@@ -39,6 +40,7 @@ interface CardCopy {
   name: string;
   description: string;
   tooltip: string;
+  limitations: string;
 }
 
 export const USD_BRL_COPY: CardCopy = {
@@ -46,6 +48,8 @@ export const USD_BRL_COPY: CardCopy = {
   description: 'Comparando com 5 dias úteis anteriores',
   tooltip:
     'Cotação de venda do dólar americano em reais pela PTAX do Banco Central do Brasil. A variação compara a cotação mais recente com a 5ª observação útil anterior disponível, ignorando dias sem cotação.',
+  limitations:
+    'A PTAX não é publicada em fins de semana e feriados. Não interpolamos lacunas: o último valor é o fechamento mais recente disponível, e a variação usa as 5 observações úteis anteriores com dado. A data de referência é a data dessa cotação, não o horário da consulta.',
 };
 
 export const EUR_BRL_COPY: CardCopy = {
@@ -53,20 +57,26 @@ export const EUR_BRL_COPY: CardCopy = {
   description: 'Comparando com 5 dias úteis anteriores',
   tooltip:
     'Cotação de venda do euro em reais divulgada pelo Banco Central do Brasil. A variação compara a cotação mais recente com a 5ª observação útil anterior disponível, ignorando dias sem cotação.',
+  limitations:
+    'Só entra o boletim de Fechamento da PTAX. Dias sem publicação (fins de semana, feriados ou falhas da fonte) são omitidos, sem interpolação. A data de referência é a do último fechamento persistido.',
 };
 
 export const FED_FUNDS_COPY: CardCopy = {
   name: 'Juros dos EUA',
   description: 'Comparando com mês anterior',
   tooltip:
-    'Taxa efetiva média dos empréstimos de curtíssimo prazo entre instituições financeiras dos EUA. A variação compara percentualmente a observação mensal mais recente com a do mês anterior.',
+    'Taxa efetiva média dos empréstimos de curtíssimo prazo entre instituições financeiras dos EUA. A variação é ((mês atual − mês anterior) / mês anterior) × 100.',
+  limitations:
+    'Série mensal FEDFUNDS no FRED. Observações ausentes (valor “.”) são ignoradas e não interpoladas. O FRED pode revisar meses anteriores. O último valor é a taxa do mês mais recente persistido; a data de referência é a data dessa observação mensal.',
 };
 
 export const US_CPI_COPY: CardCopy = {
   name: 'Índice de Preços dos EUA',
   description: 'Comparando com mês anterior',
   tooltip:
-    'Índice que acompanha a evolução dos preços de bens e serviços consumidos nos EUA. A variação mostra a mudança percentual do índice no mês, comparando a observação mais recente com a do mês anterior.',
+    'Índice que acompanha a evolução dos preços de bens e serviços consumidos nos EUA. A variação mostra a mudança percentual do índice no mês, comparando a observação mais recente com a do mês anterior: ((atual − anterior) / anterior) × 100.',
+  limitations:
+    'A série CPIAUCSL é o nível do índice, não a inflação. Exibimos a variação mensal ((mês atual − mês anterior) / mês anterior) × 100. Meses sem dado válido são omitidos, sem interpolação. O FRED pode revisar o histórico, e o mês corrente costuma sair com defasagem.',
 };
 
 // Janela em dias corridos enviada à Olinda. Precisa ser maior que
@@ -130,8 +140,8 @@ export async function getFedFundsCard(): Promise<CardBody> {
     monthlyValues,
     FED_FUNDS_COPY.name,
   );
-  // Variação em pontos percentuais em relação ao mês anterior (4,33 → 4,33 = 0).
-  const indicator = roundToTwo(current.value - previous.value);
+  // Variação percentual em relação ao mês anterior: ((atual − anterior) / anterior) × 100.
+  const indicator = percentChange(current.value, previous.value);
 
   return {
     ...FED_FUNDS_COPY,
@@ -152,11 +162,7 @@ export async function getUsCpiCard(): Promise<CardBody> {
     US_CPI_SERIES_ID,
   );
   const { current, previous } = latestFredPair(monthlyValues, US_CPI_COPY.name);
-  const monthlyInflation =
-    previous.value === 0
-      ? 0
-      : ((current.value - previous.value) / previous.value) * 100;
-  const inflation = roundToTwo(monthlyInflation);
+  const inflation = percentChange(current.value, previous.value);
 
   return {
     ...US_CPI_COPY,
@@ -356,8 +362,7 @@ function buildFxPriceCard({
   const indicator =
     previous.cotacaoVenda === 0
       ? 0
-      : ((current.cotacaoVenda - previous.cotacaoVenda) / previous.cotacaoVenda) *
-        100;
+      : percentChange(current.cotacaoVenda, previous.cotacaoVenda);
 
   return {
     ...copy,
@@ -366,7 +371,7 @@ function buildFxPriceCard({
     // Front-end espera o preço em centavos, truncado (5,1862 → 518).
     price: toTruncatedCents(current.cotacaoVenda),
     percentage: null,
-    indicator: roundToTwo(indicator),
+    indicator,
     // Data da cotação mais recente retornada pela Olinda.
     referenceDate: toIsoDate(current.dataHoraCotacao),
   };
@@ -396,6 +401,14 @@ function toIsoDate(dataHoraCotacao: string): string {
 
 function roundToTwo(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+function percentChange(current: number, previous: number): number {
+  if (previous === 0) {
+    return 0;
+  }
+
+  return roundToTwo(((current - previous) / previous) * 100);
 }
 
 function toTruncatedCents(value: number): number {

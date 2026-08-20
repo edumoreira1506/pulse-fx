@@ -168,23 +168,29 @@ async function getMonthlyHistory(
   identifier: string,
   period: MonthlyHistoryPeriod,
 ): Promise<HistoryItem[]> {
-  // FRED é mensal: 12, 24 ou 60 observações conforme o período.
-  const limit = MONTHLY_PERIOD_LIMITS[period];
+  // FRED é mensal: 12, 24 ou 60 pontos no gráfico. CPI precisa de +1 índice
+  // para montar a inflação mês a mês da mesma forma que o card.
+  const pointCount = MONTHLY_PERIOD_LIMITS[period];
+  const fetchLimit =
+    identifier === 'us-cpi' ? pointCount + 1 : pointCount;
   const seriesId =
     identifier === 'fed-funds' ? FED_FUNDS_SERIES_ID : US_CPI_SERIES_ID;
 
-  // Cache local primeiro: as últimas N observações mensais do indicador.
-  const cached = await findLatestObservations(identifier, limit);
+  // Cache local primeiro: as últimas N observações mensais brutas do FRED.
+  const cached = await findLatestObservations(identifier, fetchLimit);
 
-  if (hasRequiredMonthlyHistoryCache(cached, limit)) {
-    return cached.map((observation) => ({
-      date: observation.referenceDate,
-      value: observation.value,
-    }));
+  if (hasRequiredMonthlyHistoryCache(cached, fetchLimit)) {
+    return toHistorySeries(
+      identifier,
+      cached.map((observation) => ({
+        date: observation.referenceDate,
+        value: observation.value,
+      })),
+    );
   }
 
   const monthlyValues = toMonthlyFredValues(
-    await getSeriesObservations(seriesId, limit),
+    await getSeriesObservations(seriesId, fetchLimit),
   );
 
   if (monthlyValues.length === 0) {
@@ -192,7 +198,41 @@ async function getMonthlyHistory(
   }
 
   await saveObservations(identifier, monthlyValues);
+  return toHistorySeries(identifier, monthlyValues);
+}
+
+function toHistorySeries(
+  identifier: string,
+  monthlyValues: HistoryItem[],
+): HistoryItem[] {
+  if (identifier === 'us-cpi') {
+    return toMonthOverMonthPercent(monthlyValues);
+  }
+
   return monthlyValues;
+}
+
+function toMonthOverMonthPercent(monthlyValues: HistoryItem[]): HistoryItem[] {
+  const history: HistoryItem[] = [];
+
+  for (let index = 1; index < monthlyValues.length; index += 1) {
+    const previous = monthlyValues[index - 1];
+    const current = monthlyValues[index];
+    history.push({
+      date: current.date,
+      value: percentChange(current.value, previous.value),
+    });
+  }
+
+  return history;
+}
+
+function percentChange(current: number, previous: number): number {
+  if (previous === 0) {
+    return 0;
+  }
+
+  return Math.round(((current - previous) / previous) * 10000) / 100;
 }
 
 async function getFxQuotesFromCacheOrApi({

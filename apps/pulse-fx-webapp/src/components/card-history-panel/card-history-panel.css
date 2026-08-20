@@ -56,6 +56,51 @@
   outline-offset: 2px;
 }
 
+.card-history-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.card-history-stats dt {
+  font-size: 0.75rem;
+  color: #ccc;
+}
+
+.card-history-stats dd {
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+}
+
+.card-history-rule {
+  margin-top: 16px;
+  font-size: 0.875rem;
+  color: #ccc;
+}
+
+.card-history-limitations {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #333;
+}
+
+.card-history-limitations h3 {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+}
+
+.card-history-limitations p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #ccc;
+}
+
+.card-history-disclaimer {
+  margin-top: 12px !important;
+}
+
 .card-history-period {
   display: flex;
   flex-direction: column;
@@ -97,5 +142,9 @@
 
   .card-history-chart {
     min-height: 320px;
+  }
+
+  .card-history-stats {
+    grid-template-columns: 1fr;
   }
 }

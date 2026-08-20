@@ -51,37 +51,46 @@ Dentro da rede do Compose o Postgres continua na porta `5432`. No host a porta p
 
 ## Decisões técnicas relevantes e trade-offs
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-- Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-- Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium.
-- Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.
+- **Monorepo Nx** com `pulse-fx-api` (Express + TypeORM) e `pulse-fx-webapp` (React + Vite). Um único `docker compose` sobe API, web e Postgres.
+- **Cache-first na observação:** cada request de card/histórico consulta a tabela `observations` antes de Olinda/FRED e faz upsert do que vier da API. Não há job agendado: a sincronização é sob demanda, com regra de “cache ainda válido” para não martelar as fontes.
+- **FX em centavos truncados** na API (5,1862 → 518) para o card; o gráfico usa a cotação de venda em reais, também truncada na formatação.
+- **CPI:** persistimos o índice CPIAUCSL; o card e o gráfico de detalhe mostram a inflação mês a mês derivada desse índice.
+- **Favoritos** são linhas na tabela `favorites` (indicador persistido no backend). O toggle “Meus indicadores” só filtra o dashboard.
 
 ## Séries escolhidas e documentação de referência
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Curabitur blandit tempus porttitor.
+Conjunto mínimo coerente para um MVP de câmbio BRL + macro EUA: dois pares PTAX que o usuário brasileiro acompanha no dia a dia e dois termômetros mensais (juros e preços) via FRED.
 
-| Série                       | Fonte / documentação                 |
-| --------------------------- | ------------------------------------ |
-| Lorem ipsum dolor sit amet  | https://example.com/docs/lorem-ipsum |
-| Consectetur adipiscing elit | https://example.com/docs/consectetur |
-| Sed do eiusmod tempor       | https://example.com/docs/tempor      |
+| Indicador | Identificador | Fonte | Por que está no Pulse FX | Documentação |
+| --- | --- | --- | --- | --- |
+| Dólar / Real | `usd-brl` | BCB Olinda `CotacaoDolarPeriodo` | Cotação PTAX de venda, referência usual de câmbio no Brasil. | https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/swagger-ui3/ |
+| Euro / Real | `eur-brl` | BCB Olinda `CotacaoMoedaPeriodo` (`EUR`, boletim Fechamento) | Segundo par mais relevante para quem olha BRL além do dólar. | mesma PTAX / Olinda |
+| Juros dos EUA | `fed-funds` | FRED `FEDFUNDS` | Taxa efetiva dos fed funds; ancora expectativas de juros globais. | https://fred.stlouisfed.org/docs/api/fred/ e https://fred.stlouisfed.org/series/FEDFUNDS |
+| Índice de Preços dos EUA | `us-cpi` | FRED `CPIAUCSL` | Nível do CPI; a inflação mensal é calculada por nós. | https://fred.stlouisfed.org/series/CPIAUCSL |
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper.
+BCB Dados Abertos: https://dadosabertos.bcb.gov.br/  
+Chave FRED: https://fredaccount.stlouisfed.org/apikeys
 
 ## Regras de variação e janela de histórico por tipo de série
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam quis risus eget urna mollis ornare vel eu leo.
+**Último valor** = observação válida mais recente já persistida (ou recém gravada após miss de cache). **Data de referência** = data dessa observação, nunca o horário da consulta.
 
-| Tipo de série    | Variação                      | Janela de histórico            |
-| ---------------- | ----------------------------- | ------------------------------ |
-| Lorem ipsum      | ± X% lorem ipsum dolor        | N períodos (lorem ipsum)       |
-| Dolor sit amet   | ± Y% consectetur adipiscing   | M períodos (lorem ipsum)       |
-| Consectetur elit | regra placeholder lorem ipsum | janela placeholder lorem ipsum |
+Não interpolamos fins de semana, feriados ou buracos. Se o dia/mês não tem print, ele simplesmente não entra na série.
 
-Sed posuere consectetur est at lobortis. Aenean lacinia bibendum nulla sed consectetur. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
+| Tipo | Último valor | Variação % | N | Histórico no detalhe |
+| --- | --- | --- | --- | --- |
+| FX diário (`usd-brl`, `eur-brl`) | Cotação de venda PTAX | `((último − valor de N dias úteis atrás) / valor de N dias úteis atrás) × 100`, usando só dias **com** cotação | **N = 5** (janela curta típica de variação cambial de uma semana útil) | `LAST_5_BUSINESS_DAY` (padrão), `LAST_30_DAYS`, `LAST_90_DAYS`, `LAST_ONE_YEAR` |
+| Macro mensal (`fed-funds`, `us-cpi`) | Fed Funds = taxa do mês; CPI = inflação MoM do índice | `((mês atual − mês anterior) / mês anterior) × 100` | **N = 1 mês** (comparação com o período imediatamente anterior da série mensal; não usamos “5 dias” em série mensal) | `LAST_ONE_YEAR` (padrão), `LAST_TWO_YEARS`, `LAST_FIVE_YEARS` |
+
+A mesma variação, último valor e data de referência do card são repetidos no painel de detalhe. O gráfico de FX é a cotação diária; o de Fed Funds é a taxa mensal; o de CPI é a inflação mensal (não o índice bruto).
+
+### Política de sincronização (cache)
+
+- **FX:** cache hit se existirem pelo menos 6 cotações no intervalo pedido **e** uma delas for a data de hoje no calendário de Brasília. Lookback de 14 dias corridos para cobrir fins de semana/feriados ao montar 5 dias úteis + hoje. Fora isso, chama Olinda e faz upsert.
+- **FRED:** cache hit se houver observações suficientes para a janela **e** (`updated_at` de hoje **ou** o mês mais recente ≥ mês calendário anterior). Caso contrário, chama a API e faz upsert.
+- Valores FRED iguais a `.` são tratados como ausentes e descartados.
+
+Favoritos: `POST /favorites` e `DELETE /favorites/:cardIndicatorId`; `GET /cards` devolve `isFavorite`.
 
 ## Como rodar o frontend web
 

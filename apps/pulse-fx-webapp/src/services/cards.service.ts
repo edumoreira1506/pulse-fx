@@ -12,6 +12,7 @@ export interface Card {
   referenceDate: string;
   description: string;
   tooltip: string;
+  limitations: string;
   isFavorite: boolean;
 }
 

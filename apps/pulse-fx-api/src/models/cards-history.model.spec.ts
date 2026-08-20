@@ -239,19 +239,43 @@ describe('listCardHistory', () => {
       });
     });
 
-    it('should fetch two years of CPI observations', async () => {
+    it('should fetch two years of CPI as month-over-month inflation', async () => {
       vi.mocked(getSeriesObservations).mockResolvedValue([
         { date: '2026-07-01', value: '322.40' },
         { date: '2026-06-01', value: '321.50' },
+        { date: '2026-05-01', value: '320.10' },
       ]);
 
       const history = await listCardHistory('us-cpi', 'LAST_TWO_YEARS');
 
-      expect(getSeriesObservations).toHaveBeenCalledWith('CPIAUCSL', 24);
+      expect(getSeriesObservations).toHaveBeenCalledWith('CPIAUCSL', 25);
       expect(history).toEqual([
-        { date: '2026-06-01', value: 321.5 },
-        { date: '2026-07-01', value: 322.4 },
+        { date: '2026-06-01', value: 0.44 },
+        { date: '2026-07-01', value: 0.28 },
       ]);
+    });
+
+    it('should turn cached CPI index values into month-over-month inflation', async () => {
+      const cached = Array.from({ length: 13 }, (_, index) => {
+        const date = new Date(Date.UTC(2025, 6 + index, 1));
+        return {
+          indicator: 'us-cpi',
+          value: 310 + index,
+          referenceDate: date.toISOString().slice(0, 10),
+          updatedAt: new Date(),
+        };
+      });
+      vi.mocked(findLatestObservations).mockResolvedValue(cached);
+
+      const history = await listCardHistory('us-cpi', 'LAST_ONE_YEAR');
+
+      expect(getSeriesObservations).not.toHaveBeenCalled();
+      expect(history).toHaveLength(12);
+      expect(history[0]?.date).toBe(cached[1]?.referenceDate);
+      expect(history[history.length - 1]?.date).toBe(
+        cached[cached.length - 1]?.referenceDate,
+      );
+      expect(history[0]?.value).not.toBe(cached[1]?.value);
     });
 
     it('should use cached monthly observations instead of the API', async () => {

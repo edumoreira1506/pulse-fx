@@ -35,6 +35,30 @@
   color: #444;
 }
 
+.dashboard-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dashboard-favorites-toggle {
+  padding: 8px 14px;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font: inherit;
+}
+
+.dashboard-favorites-toggle.is-active,
+.dashboard-favorites-toggle[aria-pressed='true'] {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
 .dashboard-status {
   margin-top: 24px;
   color: #666;
@@ -47,13 +71,23 @@
   margin-top: 32px;
 }
 
+.app-disclaimer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px 32px;
+  color: #666;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 @media (max-width: 768px) {
   .app-title {
     font-size: 1.5rem;
   }
 
   .header-content,
-  .dashboard {
+  .dashboard,
+  .app-disclaimer {
     padding-left: 16px;
     padding-right: 16px;
   }
