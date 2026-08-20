@@ -31,6 +31,7 @@ export function DashboardPage() {
                   percentage={card.percentage}
                   indicator={card.indicator}
                   referenceDate={card.referenceDate}
+                  description={card.description}
                 />
               ))}
             </div>

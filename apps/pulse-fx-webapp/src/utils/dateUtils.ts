@@ -1,3 +1,5 @@
+import type { CardType } from '../services/cards.service';
+
 export function formatReferenceDate(isoDate: string, isPercentage: boolean): string {
   const [year, month, day] = isoDate.split('-').map(Number);
   const date = new Date(year, month - 1, day);
@@ -21,4 +23,8 @@ export function formatReferenceDate(isoDate: string, isPercentage: boolean): str
   }
 
   return `${monthLabel} ${yearPart}`;
+}
+
+export function getReferenceDateTooltip(type: CardType): string {
+  return type === 'percentage' ? 'Referência' : 'Data de referência';
 }

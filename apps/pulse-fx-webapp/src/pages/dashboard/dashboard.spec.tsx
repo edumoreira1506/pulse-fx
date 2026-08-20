@@ -10,6 +10,7 @@ const cards = [
     percentage: null,
     indicator: 1.37,
     referenceDate: '2026-08-18',
+    description: 'Comparando com 5 dias úteis anteriores',
   },
 ];
 

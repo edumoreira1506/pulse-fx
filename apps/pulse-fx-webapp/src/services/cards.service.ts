@@ -9,6 +9,7 @@ export interface Card {
   percentage: number | null;
   indicator: number;
   referenceDate: string;
+  description: string;
 }
 
 export async function getCards(): Promise<Card[]> {

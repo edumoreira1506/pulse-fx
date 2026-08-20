@@ -33,13 +33,56 @@
   font-weight: 400;
 }
 
+.card-indicator-variation-wrap {
+  margin-top: 28px;
+}
+
 .card-indicator-variation {
-  margin-top: 8px;
   font-size: 0.95rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.card-indicator-tooltip-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.card-indicator-tooltip-trigger {
+  cursor: help;
+}
+
+.card-indicator-tooltip {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  z-index: 1;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.card-indicator-tooltip-wrap:hover .card-indicator-tooltip,
+.card-indicator-tooltip-wrap:focus-within .card-indicator-tooltip,
+.card-indicator-tooltip-wrap.is-open .card-indicator-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.card-indicator-date-wrap {
+  margin-top: auto;
+  padding-top: 32px;
 }
 
 .card-indicator-date {
-  margin-top: auto;
-  padding-top: 32px;
   font-size: 0.95rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

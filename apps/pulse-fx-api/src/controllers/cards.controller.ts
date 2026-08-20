@@ -9,6 +9,7 @@ const cards = [
     percentage: null,
     indicator: 1.37,
     referenceDate: '2026-08-18',
+    description: 'Comparando com 5 dias úteis anteriores',
   },
   {
     name: 'EUR / BRL',
@@ -18,6 +19,7 @@ const cards = [
     percentage: null,
     indicator: -0.82,
     referenceDate: '2026-08-18',
+    description: 'Comparando com 5 dias úteis anteriores',
   },
   {
     name: 'Fed Funds',
@@ -27,6 +29,7 @@ const cards = [
     percentage: 5.25,
     indicator: 0,
     referenceDate: '2026-07-01',
+    description: 'Comparando com mês anterior',
   },
   {
     name: 'US CPI',
@@ -36,6 +39,7 @@ const cards = [
     percentage: 2.7,
     indicator: 0.10,
     referenceDate: '2026-07-01',
+    description: 'Comparando com mês anterior',
   },
 ];
 
