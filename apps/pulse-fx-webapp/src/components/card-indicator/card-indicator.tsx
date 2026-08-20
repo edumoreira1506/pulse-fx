@@ -17,6 +17,8 @@ export interface CardIndicatorProps {
   referenceDate: string;
   description: string;
   tooltip: string;
+  isFavorite: boolean;
+  onFavoriteToggle: () => Promise<void> | void;
 }
 
 function CardHoverTooltip({
@@ -52,6 +54,26 @@ function CardHoverTooltip({
         {text}
       </span>
     </span>
+  );
+}
+
+function HeartIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      className="card-indicator-favorite-icon"
+      viewBox="0 0 16 16"
+      width="16"
+      height="16"
+      aria-hidden="true"
+    >
+      <path
+        d="M8 13.6s-5.8-3.5-5.8-7.1A3.2 3.2 0 0 1 8 3.9 3.2 3.2 0 0 1 13.8 6.5C13.8 10.1 8 13.6 8 13.6z"
+        fill={filled ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -93,8 +115,11 @@ export function CardIndicator({
   referenceDate,
   description,
   tooltip,
+  isFavorite,
+  onFavoriteToggle,
 }: CardIndicatorProps) {
   const { arrow, label } = formatIndicator(indicator);
+  const [isFavoritePending, setIsFavoritePending] = useState(false);
 
   return (
     <button
@@ -105,11 +130,37 @@ export function CardIndicator({
     >
       <span className="card-indicator-header">
         <span className="card-indicator-name">{name}</span>
-        <CardHoverTooltip className="card-indicator-info-wrap" text={tooltip}>
-          <span className="card-indicator-info" aria-label={`Sobre ${name}`}>
-            <InfoIcon />
+        <span className="card-indicator-actions">
+          <span
+            className={`card-indicator-favorite${
+              isFavoritePending ? ' is-pending' : ''
+            }`}
+            aria-label={
+              isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+            }
+            aria-pressed={isFavorite}
+            onClick={async (event) => {
+              event.stopPropagation();
+              if (isFavoritePending) {
+                return;
+              }
+
+              setIsFavoritePending(true);
+              try {
+                await onFavoriteToggle();
+              } finally {
+                setIsFavoritePending(false);
+              }
+            }}
+          >
+            <HeartIcon filled={isFavorite} />
           </span>
-        </CardHoverTooltip>
+          <CardHoverTooltip className="card-indicator-info-wrap" text={tooltip}>
+            <span className="card-indicator-info" aria-label={`Sobre ${name}`}>
+              <InfoIcon />
+            </span>
+          </CardHoverTooltip>
+        </span>
       </span>
       <span className="card-indicator-value">
         {formatValue(type, price, percentage)}

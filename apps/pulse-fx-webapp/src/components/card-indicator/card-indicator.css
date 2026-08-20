@@ -34,8 +34,31 @@
   width: 100%;
 }
 
-.card-indicator-info-wrap {
+.card-indicator-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-left: auto;
+}
+
+.card-indicator-favorite {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.card-indicator-favorite.is-pending {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.card-indicator-favorite-icon {
+  display: block;
+}
+
+.card-indicator-info-wrap {
+  margin-left: 0;
 }
 
 .card-indicator-info {

@@ -5,6 +5,7 @@ import { DashboardPage } from './dashboard';
 const cards = [
   {
     name: 'USD / BRL',
+    identifier: 'usd-brl',
     type: 'price' as const,
     price: 542,
     percentage: null,

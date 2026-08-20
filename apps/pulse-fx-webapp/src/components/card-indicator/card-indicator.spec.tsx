@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import CardIndicator from './card-indicator';
 
 const usdBrlTooltip =
@@ -13,6 +13,8 @@ const usdBrl = {
   referenceDate: '2026-08-18',
   description: 'Comparando com 5 dias úteis anteriores',
   tooltip: usdBrlTooltip,
+  isFavorite: false,
+  onFavoriteToggle: vi.fn(),
 };
 
 const fedFunds = {
@@ -25,6 +27,8 @@ const fedFunds = {
   description: 'Comparando com mês anterior',
   tooltip:
     'Taxa efetiva média dos empréstimos de curtíssimo prazo entre instituições financeiras dos EUA. A variação compara percentualmente a observação mensal mais recente com a do mês anterior.',
+  isFavorite: true,
+  onFavoriteToggle: vi.fn(),
 };
 
 describe('CardIndicator', () => {
@@ -106,6 +110,42 @@ describe('CardIndicator', () => {
 
     fireEvent.click(getByLabelText('Sobre USD / BRL'));
 
+    expect(alertSpy).not.toHaveBeenCalled();
+    alertSpy.mockRestore();
+  });
+
+  it('should render an empty heart when the card is not a favorite', () => {
+    const { getByLabelText } = render(<CardIndicator {...usdBrl} />);
+
+    expect(getByLabelText('Adicionar aos favoritos')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
+  it('should render a filled heart when the card is a favorite', () => {
+    const { getByLabelText } = render(<CardIndicator {...fedFunds} />);
+
+    expect(getByLabelText('Remover dos favoritos')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('should toggle favorite without alerting the card name', async () => {
+    const onFavoriteToggle = vi.fn().mockResolvedValue(undefined);
+    const alertSpy = vi
+      .spyOn(window, 'alert')
+      .mockImplementation(() => undefined);
+    const { getByLabelText } = render(
+      <CardIndicator {...usdBrl} onFavoriteToggle={onFavoriteToggle} />,
+    );
+
+    fireEvent.click(getByLabelText('Adicionar aos favoritos'));
+
+    await waitFor(() => {
+      expect(onFavoriteToggle).toHaveBeenCalledTimes(1);
+    });
     expect(alertSpy).not.toHaveBeenCalled();
     alertSpy.mockRestore();
   });

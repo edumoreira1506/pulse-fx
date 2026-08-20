@@ -3,7 +3,7 @@ import { useCards } from '../../data/use-cards';
 import './dashboard.css';
 
 export function DashboardPage() {
-  const { cards, loading, error } = useCards();
+  const { cards, loading, error, toggleFavorite } = useCards();
 
   return (
     <>
@@ -33,6 +33,10 @@ export function DashboardPage() {
                   referenceDate={card.referenceDate}
                   description={card.description}
                   tooltip={card.tooltip}
+                  isFavorite={card.isFavorite}
+                  onFavoriteToggle={() =>
+                    toggleFavorite(card.identifier, card.isFavorite)
+                  }
                 />
               ))}
             </div>

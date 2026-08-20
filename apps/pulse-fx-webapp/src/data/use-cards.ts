@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getCards, type Card } from '../services/cards.service';
+import { addFavorite, removeFavorite } from '../services/favorites.service';
 
 export type { Card };
 
@@ -31,10 +32,27 @@ export function useCards() {
     loadCards();
   }, []);
 
+  const toggleFavorite = async (identifier: string, isFavorite: boolean) => {
+    if (isFavorite) {
+      await removeFavorite(identifier);
+    } else {
+      await addFavorite(identifier);
+    }
+
+    setCards((current) =>
+      current.map((card) =>
+        card.identifier === identifier
+          ? { ...card, isFavorite: !isFavorite }
+          : card,
+      ),
+    );
+  };
+
   return {
     cards,
     loading,
     error,
+    toggleFavorite,
   };
 }
 

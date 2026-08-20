@@ -4,6 +4,7 @@ export type CardType = 'price' | 'percentage';
 
 export interface Card {
   name: string;
+  identifier: string;
   type: CardType;
   price: number | null;
   percentage: number | null;
