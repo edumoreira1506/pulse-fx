@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 const cards = [
   {
     name: 'USD / BRL',
+    identifier: 'usd-brl',
+    type: 'price',
     price: 542,
     percentage: null,
     indicator: 1.37,
@@ -10,6 +12,8 @@ const cards = [
   },
   {
     name: 'EUR / BRL',
+    identifier: 'eur-brl',
+    type: 'price',
     price: 631,
     percentage: null,
     indicator: -0.82,
@@ -17,6 +21,8 @@ const cards = [
   },
   {
     name: 'Fed Funds',
+    identifier: 'fed-funds',
+    type: 'percentage',
     price: null,
     percentage: 5.25,
     indicator: 0,
@@ -24,6 +30,8 @@ const cards = [
   },
   {
     name: 'US CPI',
+    identifier: 'us-cpi',
+    type: 'percentage',
     price: null,
     percentage: 2.7,
     indicator: 0.10,

@@ -3,6 +3,7 @@ import { getCards } from './cards.service';
 
 const usdBrl = {
   name: 'USD / BRL',
+  type: 'price' as const,
   price: 542,
   percentage: null,
   indicator: 1.37,

@@ -26,6 +26,7 @@ export function DashboardPage() {
                 <CardIndicator
                   key={card.name}
                   name={card.name}
+                  type={card.type}
                   price={card.price}
                   percentage={card.percentage}
                   indicator={card.indicator}

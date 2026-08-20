@@ -1,14 +1,16 @@
+import type { CardType } from '../services/cards.service';
 import { formatPercentage, formatPrice } from './priceUtils';
 
 export function formatValue(
+  type: CardType,
   price: number | null,
   percentage: number | null,
 ): string {
-  if (price != null) {
+  if (type === 'price' && price != null) {
     return formatPrice(price);
   }
 
-  if (percentage != null) {
+  if (type === 'percentage' && percentage != null) {
     return formatPercentage(percentage);
   }
 

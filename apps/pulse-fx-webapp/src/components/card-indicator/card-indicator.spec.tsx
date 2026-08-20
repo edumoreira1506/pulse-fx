@@ -3,6 +3,7 @@ import CardIndicator from './card-indicator';
 
 const usdBrl = {
   name: 'USD / BRL',
+  type: 'price' as const,
   price: 542,
   percentage: null,
   indicator: 1.37,
@@ -11,6 +12,7 @@ const usdBrl = {
 
 const fedFunds = {
   name: 'Fed Funds',
+  type: 'percentage' as const,
   price: null,
   percentage: 5.25,
   indicator: 0,

@@ -1,7 +1,10 @@
 import { api } from './api';
 
+export type CardType = 'price' | 'percentage';
+
 export interface Card {
   name: string;
+  type: CardType;
   price: number | null;
   percentage: number | null;
   indicator: number;

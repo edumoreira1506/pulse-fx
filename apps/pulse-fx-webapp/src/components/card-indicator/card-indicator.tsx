@@ -1,3 +1,4 @@
+import type { CardType } from '../../services/cards.service';
 import { formatValue } from '../../utils/dashboardUtils';
 import { formatReferenceDate } from '../../utils/dateUtils';
 import { formatIndicator } from '../../utils/indicatorUtils';
@@ -5,6 +6,7 @@ import './card-indicator.css';
 
 export interface CardIndicatorProps {
   name: string;
+  type: CardType;
   price: number | null;
   percentage: number | null;
   indicator: number;
@@ -13,6 +15,7 @@ export interface CardIndicatorProps {
 
 export function CardIndicator({
   name,
+  type,
   price,
   percentage,
   indicator,
@@ -28,13 +31,13 @@ export function CardIndicator({
     >
       <span className="card-indicator-name">{name}</span>
       <span className="card-indicator-value">
-        {formatValue(price, percentage)}
+        {formatValue(type, price, percentage)}
       </span>
       <span className="card-indicator-variation">
         <span aria-hidden="true">{arrow}</span> {label}
       </span>
       <time className="card-indicator-date" dateTime={referenceDate}>
-        {formatReferenceDate(referenceDate, Boolean(percentage))}
+        {formatReferenceDate(referenceDate, type === 'percentage')}
       </time>
     </button>
   );
