@@ -1,10 +1,19 @@
-import { getEurBrlCard, getUsdBrlCard, listCards } from './cards.model';
+import { getEurBrlCard, getFedFundsCard, getUsdBrlCard, listCards } from './cards.model';
 import { getCurrencyQuotes, getDollarQuotes } from '../services/olinda.service';
+import { getSeriesObservations } from '../services/fred.service';
 
 vi.mock('../services/olinda.service', () => ({
   getDollarQuotes: vi.fn(),
   getCurrencyQuotes: vi.fn(),
 }));
+
+vi.mock('../services/fred.service', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/fred.service')>();
+  return {
+    ...actual,
+    getSeriesObservations: vi.fn(),
+  };
+});
 
 const usdQuotes = [
   {
@@ -140,10 +149,37 @@ describe('getEurBrlCard', () => {
   });
 });
 
+describe('getFedFundsCard', () => {
+  it('should map the latest rate and the month-over-month change', async () => {
+    vi.mocked(getSeriesObservations).mockResolvedValue([
+      { date: '2026-07-01', value: '4.33' },
+      { date: '2026-06-01', value: '4.33' },
+      { date: '2026-05-01', value: '4.33' },
+    ]);
+
+    const card = await getFedFundsCard();
+
+    expect(card).toMatchObject({
+      name: 'Fed Funds',
+      identifier: 'fed-funds',
+      type: 'percentage',
+      price: null,
+      percentage: 4.33,
+      indicator: 0,
+      referenceDate: '2026-07-01',
+      description: 'Comparando com mês anterior',
+    });
+  });
+});
+
 describe('listCards', () => {
   it('should put the live FX cards first', async () => {
     vi.mocked(getDollarQuotes).mockResolvedValue(usdQuotes);
     vi.mocked(getCurrencyQuotes).mockResolvedValue(eurQuotes);
+    vi.mocked(getSeriesObservations).mockResolvedValue([
+      { date: '2026-07-01', value: '4.33' },
+      { date: '2026-06-01', value: '4.33' },
+    ]);
 
     const cards = await listCards();
 

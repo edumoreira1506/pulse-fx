@@ -3,6 +3,11 @@ import {
   getDollarQuotes,
   type PtaxQuote,
 } from '../services/olinda.service';
+import {
+  FED_FUNDS_SERIES_ID,
+  getSeriesObservations,
+  parseFredValue,
+} from '../services/fred.service';
 
 export type CardType = 'price' | 'percentage';
 
@@ -18,16 +23,6 @@ export interface Card {
 }
 
 const HARDCODED_CARDS: Card[] = [
-  {
-    name: 'Fed Funds',
-    identifier: 'fed-funds',
-    type: 'percentage',
-    price: null,
-    percentage: 5.25,
-    indicator: 0,
-    referenceDate: '2026-07-01',
-    description: 'Comparando com mês anterior',
-  },
   {
     name: 'US CPI',
     identifier: 'us-cpi',
@@ -47,11 +42,12 @@ const CALENDAR_LOOKBACK_DAYS = 14;
 const FX_QUOTE_DAYS = 1 + 5;
 
 export async function listCards(): Promise<Card[]> {
-  const [usdBrl, eurBrl] = await Promise.all([
+  const [usdBrl, eurBrl, fedFunds] = await Promise.all([
     getUsdBrlCard(),
     getEurBrlCard(),
+    getFedFundsCard(),
   ]);
-  return [usdBrl, eurBrl, ...HARDCODED_CARDS];
+  return [usdBrl, eurBrl, fedFunds, ...HARDCODED_CARDS];
 }
 
 export async function getUsdBrlCard(): Promise<Card> {
@@ -72,6 +68,41 @@ export async function getEurBrlCard(): Promise<Card> {
     identifier: 'eur-brl',
     quotes,
   });
+}
+
+export async function getFedFundsCard(): Promise<Card> {
+  // Série mensal FEDFUNDS: taxa efetiva dos fed funds.
+  const observations = await getSeriesObservations(FED_FUNDS_SERIES_ID, 6);
+  const monthlyValues = observations
+    .map((observation) => ({
+      date: observation.date,
+      value: parseFredValue(observation.value),
+    }))
+    .filter(
+      (observation): observation is { date: string; value: number } =>
+        observation.value != null,
+    )
+    .sort((left, right) => left.date.localeCompare(right.date));
+
+  if (monthlyValues.length < 2) {
+    throw new Error('Not enough observations to build Fed Funds card');
+  }
+
+  const current = monthlyValues[monthlyValues.length - 1];
+  const previous = monthlyValues[monthlyValues.length - 2];
+  // Variação em pontos percentuais em relação ao mês anterior (4,33 → 4,33 = 0).
+  const indicator = roundToTwo(current.value - previous.value);
+
+  return {
+    name: 'Fed Funds',
+    identifier: 'fed-funds',
+    type: 'percentage',
+    price: null,
+    percentage: current.value,
+    indicator,
+    referenceDate: current.date,
+    description: 'Comparando com mês anterior',
+  };
 }
 
 function getPtaxPeriod(): { startDate: Date; endDate: Date } {

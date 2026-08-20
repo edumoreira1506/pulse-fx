@@ -1,5 +1,10 @@
+import { existsSync } from 'node:fs';
 import express from 'express';
 import { routes } from './configuration/routes';
+
+if (existsSync('.env')) {
+  process.loadEnvFile('.env');
+}
 
 const host = process.env.HOST ?? '0.0.0.0';
 const port = process.env.PORT ? Number(process.env.PORT) : 3333;

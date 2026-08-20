@@ -32,6 +32,7 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 3333
+      FRED_API_KEY: ${FRED_API_KEY}
       DATABASE_URL: postgresql://${POSTGRES_USER:-pulse_fx}:${POSTGRES_PASSWORD:-pulse_fx}@postgres:5432/${POSTGRES_DB:-pulse_fx}
     ports:
       - '${API_PORT:-3333}:3333'

@@ -38,6 +38,7 @@ Copie `.env.example` para `.env` para sobrescrever os defaults do Compose.
 | `POSTGRES_PORT`     | `5433`     | Porta do Postgres no host |
 | `API_PORT`          | `3333`     | Porta da API no host      |
 | `WEBAPP_PORT`       | `4200`     | Porta do webapp no host   |
+| `FRED_API_KEY`      | —          | Chave da API FRED (St. Louis Fed) |
 
 A API recebe automaticamente `DATABASE_URL` no formato:
 
