@@ -16,11 +16,16 @@ import {
   findObservationsByIndicatorAndPeriod,
   saveObservations,
 } from './observations.model';
+import { findFavoriteIndicatorIds } from './favorites.model';
 
 const observationMocks = vi.hoisted(() => ({
   findObservationsByIndicatorAndPeriod: vi.fn(),
   findLatestObservations: vi.fn(),
   saveObservations: vi.fn(),
+}));
+
+const favoriteMocks = vi.hoisted(() => ({
+  findFavoriteIndicatorIds: vi.fn(),
 }));
 
 vi.mock('../services/olinda.service', () => ({
@@ -37,6 +42,7 @@ vi.mock('../services/fred.service', async (importOriginal) => {
 });
 
 vi.mock('./observations.model', () => observationMocks);
+vi.mock('./favorites.model', () => favoriteMocks);
 
 const usdQuotes = [
   {
@@ -126,6 +132,7 @@ beforeEach(() => {
   vi.mocked(findObservationsByIndicatorAndPeriod).mockResolvedValue([]);
   vi.mocked(findLatestObservations).mockResolvedValue([]);
   vi.mocked(saveObservations).mockResolvedValue(undefined);
+  vi.mocked(findFavoriteIndicatorIds).mockResolvedValue(new Set());
 });
 
 describe('getUsdBrlCard', () => {
@@ -319,6 +326,38 @@ describe('listCards', () => {
       'eur-brl',
       'fed-funds',
       'us-cpi',
+    ]);
+    expect(cards.map((card) => card.isFavorite)).toEqual([
+      false,
+      false,
+      false,
+      false,
+    ]);
+  });
+
+  it('should mark favorited indicators', async () => {
+    vi.mocked(getDollarQuotes).mockResolvedValue(usdQuotes);
+    vi.mocked(getCurrencyQuotes).mockResolvedValue(eurQuotes);
+    vi.mocked(getSeriesObservations).mockResolvedValue([
+      { date: '2026-07-01', value: '4.33' },
+      { date: '2026-06-01', value: '4.33' },
+    ]);
+    vi.mocked(findFavoriteIndicatorIds).mockResolvedValue(
+      new Set(['eur-brl', 'us-cpi']),
+    );
+
+    const cards = await listCards();
+
+    expect(
+      cards.map((card) => ({
+        identifier: card.identifier,
+        isFavorite: card.isFavorite,
+      })),
+    ).toEqual([
+      { identifier: 'usd-brl', isFavorite: false },
+      { identifier: 'eur-brl', isFavorite: true },
+      { identifier: 'fed-funds', isFavorite: false },
+      { identifier: 'us-cpi', isFavorite: true },
     ]);
   });
 });

@@ -11,6 +11,7 @@ export interface Card {
   referenceDate: string;
   description: string;
   tooltip: string;
+  isFavorite: boolean;
 }
 
 export async function getCards(): Promise<Card[]> {

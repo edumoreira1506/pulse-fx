@@ -16,6 +16,7 @@ import {
   saveObservations,
   type CachedObservation,
 } from './observations.model';
+import { findFavoriteIndicatorIds } from './favorites.model';
 
 export type CardType = 'price' | 'percentage';
 
@@ -29,7 +30,10 @@ export interface Card {
   referenceDate: string;
   description: string;
   tooltip: string;
+  isFavorite: boolean;
 }
+
+type CardBody = Omit<Card, 'isFavorite'>;
 
 interface CardCopy {
   name: string;
@@ -72,16 +76,21 @@ const CALENDAR_LOOKBACK_DAYS = 14;
 const FX_QUOTE_DAYS = 1 + 5;
 
 export async function listCards(): Promise<Card[]> {
-  const [usdBrl, eurBrl, fedFunds, usCpi] = await Promise.all([
+  const [usdBrl, eurBrl, fedFunds, usCpi, favoriteIds] = await Promise.all([
     getUsdBrlCard(),
     getEurBrlCard(),
     getFedFundsCard(),
     getUsCpiCard(),
+    findFavoriteIndicatorIds(['usd-brl', 'eur-brl', 'fed-funds', 'us-cpi']),
   ]);
-  return [usdBrl, eurBrl, fedFunds, usCpi];
+
+  return [usdBrl, eurBrl, fedFunds, usCpi].map((card) => ({
+    ...card,
+    isFavorite: favoriteIds.has(card.identifier),
+  }));
 }
 
-export async function getUsdBrlCard(): Promise<Card> {
+export async function getUsdBrlCard(): Promise<CardBody> {
   const { startDate, endDate } = getPtaxPeriod();
   const quotes = await getFxQuotesFromCacheOrApi({
     identifier: 'usd-brl',
@@ -96,7 +105,7 @@ export async function getUsdBrlCard(): Promise<Card> {
   });
 }
 
-export async function getEurBrlCard(): Promise<Card> {
+export async function getEurBrlCard(): Promise<CardBody> {
   const { startDate, endDate } = getPtaxPeriod();
   const quotes = await getFxQuotesFromCacheOrApi({
     identifier: 'eur-brl',
@@ -111,7 +120,7 @@ export async function getEurBrlCard(): Promise<Card> {
   });
 }
 
-export async function getFedFundsCard(): Promise<Card> {
+export async function getFedFundsCard(): Promise<CardBody> {
   // Série mensal FEDFUNDS: taxa efetiva dos fed funds.
   const monthlyValues = await getMonthlyValuesFromCacheOrApi(
     'fed-funds',
@@ -135,7 +144,7 @@ export async function getFedFundsCard(): Promise<Card> {
   };
 }
 
-export async function getUsCpiCard(): Promise<Card> {
+export async function getUsCpiCard(): Promise<CardBody> {
   // CPIAUCSL é o nível do índice, não a inflação. A inflação mensal é
   // ((atual - anterior) / anterior) * 100.
   const monthlyValues = await getMonthlyValuesFromCacheOrApi(
@@ -331,7 +340,7 @@ function buildFxPriceCard({
   copy: CardCopy;
   identifier: string;
   quotes: PtaxQuote[];
-}): Card {
+}): CardBody {
   // Uma cotação por dia útil, da mais antiga para a mais recente.
   const dailyQuotes = latestQuotePerDay(quotes);
   // Fica só com hoje (ou o último dia com PTAX) e os 5 dias úteis anteriores.
