@@ -19,7 +19,7 @@ export function DashboardPage() {
     openCard,
     setPeriod,
     close,
-    toggleFavoritesOnly,
+    setTab,
   } = useCardDetailsSearch();
   const selectedCard =
     cards.find((card) => card.identifier === cardId) ?? null;
@@ -48,23 +48,37 @@ export function DashboardPage() {
             <p className="dashboard-copy">
               Mercados e indicadores macroeconômicos
             </p>
-            <button
-              type="button"
-              className={`dashboard-favorites-toggle${
-                showFavoritesOnly ? ' is-active' : ''
-              }`}
-              aria-pressed={showFavoritesOnly}
-              onClick={toggleFavoritesOnly}
+            <div
+              className="dashboard-tabs"
+              role="tablist"
+              aria-label="Filtro de indicadores"
             >
-              Meus indicadores
-            </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!showFavoritesOnly}
+                className={`dashboard-tab${!showFavoritesOnly ? ' is-active' : ''}`}
+                onClick={() => setTab('todos')}
+              >
+                Todos indicadores
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={showFavoritesOnly}
+                className={`dashboard-tab${showFavoritesOnly ? ' is-active' : ''}`}
+                onClick={() => setTab('favoritos')}
+              >
+                Favoritos
+              </button>
+            </div>
           </div>
           {loading && <p className="dashboard-status">Carregando...</p>}
           {error && <p className="dashboard-status">{error}</p>}
           {!loading && !error && showFavoritesOnly && visibleCards.length === 0 && (
             <p className="dashboard-status">
-              Nenhum indicador em Meus indicadores. Marque o coração em um card
-              para salvá-lo.
+              Nenhum indicador em Favoritos. Marque o coração em um card para
+              salvá-lo.
             </p>
           )}
           {!loading && !error && visibleCards.length > 0 && (

@@ -55,7 +55,7 @@ Dentro da rede do Compose o Postgres continua na porta `5432`. No host a porta p
 - **Cache-first na observação:** cada request de card/histórico consulta a tabela `observations` antes de Olinda/FRED e faz upsert do que vier da API. Não há job agendado: a sincronização é sob demanda, com regra de “cache ainda válido” para não martelar as fontes.
 - **FX em centavos truncados** na API (5,1862 → 518) para o card; o gráfico usa a cotação de venda em reais, também truncada na formatação.
 - **CPI:** persistimos o índice CPIAUCSL; o card e o gráfico de detalhe mostram a inflação mês a mês derivada desse índice.
-- **Favoritos** são linhas na tabela `favorites` (indicador persistido no backend). O toggle “Meus indicadores” só filtra o dashboard.
+- **Favoritos** são linhas na tabela `favorites` (indicador persistido no backend). As abas **Todos indicadores** e **Favoritos** filtram o dashboard (`?tab=favoritos`).
 
 ## Séries escolhidas e documentação de referência
 

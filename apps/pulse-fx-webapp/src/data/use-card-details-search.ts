@@ -7,7 +7,8 @@ export function useCardDetailsSearch() {
   const [searchParams, setSearchParams] = useSearchParams();
   const cardId = searchParams.get('card');
   const periodParam = searchParams.get('period');
-  const showFavoritesOnly = searchParams.get('favorites') === '1';
+  const tabParam = searchParams.get('tab');
+  const showFavoritesOnly = tabParam === 'favoritos';
 
   const openCard = useCallback(
     (identifier: string) => {
@@ -49,17 +50,25 @@ export function useCardDetailsSearch() {
     });
   }, [setSearchParams]);
 
-  const toggleFavoritesOnly = useCallback(() => {
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      if (next.get('favorites') === '1') {
-        next.delete('favorites');
-      } else {
-        next.set('favorites', '1');
+  const setTab = useCallback(
+    (tab: 'todos' | 'favoritos') => {
+      const isFavorites = tab === 'favoritos';
+      if (showFavoritesOnly === isFavorites) {
+        return;
       }
-      return next;
-    });
-  }, [setSearchParams]);
+
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        if (isFavorites) {
+          next.set('tab', 'favoritos');
+        } else {
+          next.delete('tab');
+        }
+        return next;
+      });
+    },
+    [showFavoritesOnly, setSearchParams],
+  );
 
   return {
     cardId,
@@ -68,7 +77,7 @@ export function useCardDetailsSearch() {
     openCard,
     setPeriod,
     close,
-    toggleFavoritesOnly,
+    setTab,
   };
 }
 

@@ -92,6 +92,23 @@ describe('DashboardPage', () => {
     });
   });
 
+  it('should keep the all-indicators tab selected by default', async () => {
+    const { getByRole, queryByText } = renderDashboard();
+
+    await waitFor(() => {
+      expect(queryByText('Carregando...')).not.toBeInTheDocument();
+    });
+
+    expect(getByRole('tab', { name: 'Todos indicadores' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(getByRole('tab', { name: 'Favoritos' })).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
+  });
+
   it('should render cards from the API', async () => {
     const { getByText } = renderDashboard();
 
@@ -191,9 +208,25 @@ describe('DashboardPage', () => {
       expect(getByText('USD / BRL')).toBeInTheDocument();
     });
 
-    fireEvent.click(getByRole('button', { name: 'Meus indicadores' }));
+    fireEvent.click(getByRole('tab', { name: 'Favoritos' }));
 
     expect(getByText('USD / BRL')).toBeInTheDocument();
+    expect(queryByText('Juros dos EUA')).not.toBeInTheDocument();
+  });
+
+  it('should open the favorites tab from the query param', async () => {
+    vi.mocked(getCards).mockResolvedValue([
+      { ...cards[0], isFavorite: true },
+      cards[1],
+    ]);
+    const { getByRole, queryByText } = renderDashboard(['/?tab=favoritos']);
+
+    await waitFor(() => {
+      expect(getByRole('tab', { name: 'Favoritos' })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+    });
     expect(queryByText('Juros dos EUA')).not.toBeInTheDocument();
   });
 });

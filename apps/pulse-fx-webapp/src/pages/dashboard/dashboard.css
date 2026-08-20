@@ -37,26 +37,33 @@
 
 .dashboard-toolbar {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 16px;
-  flex-wrap: wrap;
 }
 
-.dashboard-favorites-toggle {
-  padding: 8px 14px;
-  background: #fff;
-  color: #333;
-  border: 1px solid #ccc;
+.dashboard-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.dashboard-tab {
+  padding: 8px 16px;
+  background: transparent;
+  color: #666;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
   cursor: pointer;
   font: inherit;
 }
 
-.dashboard-favorites-toggle.is-active,
-.dashboard-favorites-toggle[aria-pressed='true'] {
-  background: #000;
-  color: #fff;
-  border-color: #000;
+.dashboard-tab.is-active,
+.dashboard-tab[aria-selected='true'] {
+  color: #000;
+  border-bottom-color: #000;
+  font-weight: 600;
 }
 
 .dashboard-status {
