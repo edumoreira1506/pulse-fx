@@ -11,6 +11,17 @@ import {
 } from './cards.model';
 import { getCurrencyQuotes, getDollarQuotes } from '../services/olinda.service';
 import { getSeriesObservations } from '../services/fred.service';
+import {
+  findLatestObservations,
+  findObservationsByIndicatorAndPeriod,
+  saveObservations,
+} from './observations.model';
+
+const observationMocks = vi.hoisted(() => ({
+  findObservationsByIndicatorAndPeriod: vi.fn(),
+  findLatestObservations: vi.fn(),
+  saveObservations: vi.fn(),
+}));
 
 vi.mock('../services/olinda.service', () => ({
   getDollarQuotes: vi.fn(),
@@ -24,6 +35,8 @@ vi.mock('../services/fred.service', async (importOriginal) => {
     getSeriesObservations: vi.fn(),
   };
 });
+
+vi.mock('./observations.model', () => observationMocks);
 
 const usdQuotes = [
   {
@@ -108,12 +121,25 @@ const eurQuotes = [
   },
 ];
 
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(findObservationsByIndicatorAndPeriod).mockResolvedValue([]);
+  vi.mocked(findLatestObservations).mockResolvedValue([]);
+  vi.mocked(saveObservations).mockResolvedValue(undefined);
+});
+
 describe('getUsdBrlCard', () => {
   it('should map the newest quote and 5-business-day change', async () => {
     vi.mocked(getDollarQuotes).mockResolvedValue(usdQuotes);
 
     const card = await getUsdBrlCard();
 
+    expect(saveObservations).toHaveBeenCalledWith(
+      'usd-brl',
+      expect.arrayContaining([
+        { date: '2026-08-19', value: 5.1714 },
+      ]),
+    );
     expect(card).toMatchObject({
       ...USD_BRL_COPY,
       identifier: 'usd-brl',
@@ -123,6 +149,29 @@ describe('getUsdBrlCard', () => {
       indicator: 0.15,
       referenceDate: '2026-08-19',
     });
+  });
+
+  it('should use cached FX observations instead of the API', async () => {
+    const today = brazilTodayDate();
+    const cached = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(date.getDate() - (5 - index));
+      return {
+        indicator: 'usd-brl',
+        value: 5.1 + index * 0.01,
+        referenceDate: formatIso(date),
+        updatedAt: new Date(),
+      };
+    });
+
+    vi.mocked(findObservationsByIndicatorAndPeriod).mockResolvedValue(cached);
+
+    const card = await getUsdBrlCard();
+
+    expect(getDollarQuotes).not.toHaveBeenCalled();
+    expect(saveObservations).not.toHaveBeenCalled();
+    expect(card.identifier).toBe('usd-brl');
+    expect(card.referenceDate).toBe(formatIso(today));
   });
 
   it('should throw when there are not enough quotes', async () => {
@@ -167,11 +216,44 @@ describe('getFedFundsCard', () => {
 
     const card = await getFedFundsCard();
 
+    expect(saveObservations).toHaveBeenCalledWith('fed-funds', [
+      { date: '2026-05-01', value: 4.33 },
+      { date: '2026-06-01', value: 4.33 },
+      { date: '2026-07-01', value: 4.33 },
+    ]);
     expect(card).toMatchObject({
       ...FED_FUNDS_COPY,
       identifier: 'fed-funds',
       type: 'percentage',
       price: null,
+      percentage: 4.33,
+      indicator: 0,
+      referenceDate: '2026-07-01',
+    });
+  });
+
+  it('should use cached monthly observations instead of the API', async () => {
+    vi.mocked(findLatestObservations).mockResolvedValue([
+      {
+        indicator: 'fed-funds',
+        value: 4.33,
+        referenceDate: '2026-06-01',
+        updatedAt: new Date(),
+      },
+      {
+        indicator: 'fed-funds',
+        value: 4.33,
+        referenceDate: '2026-07-01',
+        updatedAt: new Date(),
+      },
+    ]);
+
+    const card = await getFedFundsCard();
+
+    expect(getSeriesObservations).not.toHaveBeenCalled();
+    expect(saveObservations).not.toHaveBeenCalled();
+    expect(card).toMatchObject({
+      identifier: 'fed-funds',
       percentage: 4.33,
       indicator: 0,
       referenceDate: '2026-07-01',
@@ -240,3 +322,23 @@ describe('listCards', () => {
     ]);
   });
 });
+
+function brazilTodayDate(): Date {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const year = Number(parts.find((part) => part.type === 'year')?.value);
+  const month = Number(parts.find((part) => part.type === 'month')?.value);
+  const day = Number(parts.find((part) => part.type === 'day')?.value);
+  return new Date(year, month - 1, day);
+}
+
+function formatIso(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}

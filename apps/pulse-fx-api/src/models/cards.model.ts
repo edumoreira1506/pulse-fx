@@ -10,6 +10,12 @@ import {
   parseFredValue,
   type FredObservation,
 } from '../services/fred.service';
+import {
+  findLatestObservations,
+  findObservationsByIndicatorAndPeriod,
+  saveObservations,
+  type CachedObservation,
+} from './observations.model';
 
 export type CardType = 'price' | 'percentage';
 
@@ -77,7 +83,12 @@ export async function listCards(): Promise<Card[]> {
 
 export async function getUsdBrlCard(): Promise<Card> {
   const { startDate, endDate } = getPtaxPeriod();
-  const quotes = await getDollarQuotes(startDate, endDate);
+  const quotes = await getFxQuotesFromCacheOrApi({
+    identifier: 'usd-brl',
+    startDate,
+    endDate,
+    fetchQuotes: () => getDollarQuotes(startDate, endDate),
+  });
   return buildFxPriceCard({
     copy: USD_BRL_COPY,
     identifier: 'usd-brl',
@@ -87,7 +98,12 @@ export async function getUsdBrlCard(): Promise<Card> {
 
 export async function getEurBrlCard(): Promise<Card> {
   const { startDate, endDate } = getPtaxPeriod();
-  const quotes = await getCurrencyQuotes('EUR', startDate, endDate);
+  const quotes = await getFxQuotesFromCacheOrApi({
+    identifier: 'eur-brl',
+    startDate,
+    endDate,
+    fetchQuotes: () => getCurrencyQuotes('EUR', startDate, endDate),
+  });
   return buildFxPriceCard({
     copy: EUR_BRL_COPY,
     identifier: 'eur-brl',
@@ -97,7 +113,10 @@ export async function getEurBrlCard(): Promise<Card> {
 
 export async function getFedFundsCard(): Promise<Card> {
   // Série mensal FEDFUNDS: taxa efetiva dos fed funds.
-  const monthlyValues = await getMonthlyFredValues(FED_FUNDS_SERIES_ID);
+  const monthlyValues = await getMonthlyValuesFromCacheOrApi(
+    'fed-funds',
+    FED_FUNDS_SERIES_ID,
+  );
   const { current, previous } = latestFredPair(
     monthlyValues,
     FED_FUNDS_COPY.name,
@@ -119,7 +138,10 @@ export async function getFedFundsCard(): Promise<Card> {
 export async function getUsCpiCard(): Promise<Card> {
   // CPIAUCSL é o nível do índice, não a inflação. A inflação mensal é
   // ((atual - anterior) / anterior) * 100.
-  const monthlyValues = await getMonthlyFredValues(US_CPI_SERIES_ID);
+  const monthlyValues = await getMonthlyValuesFromCacheOrApi(
+    'us-cpi',
+    US_CPI_SERIES_ID,
+  );
   const { current, previous } = latestFredPair(monthlyValues, US_CPI_COPY.name);
   const monthlyInflation =
     previous.value === 0
@@ -136,6 +158,122 @@ export async function getUsCpiCard(): Promise<Card> {
     indicator: inflation,
     referenceDate: current.date,
   };
+}
+
+async function getFxQuotesFromCacheOrApi({
+  identifier,
+  startDate,
+  endDate,
+  fetchQuotes,
+}: {
+  identifier: string;
+  startDate: Date;
+  endDate: Date;
+  fetchQuotes: () => Promise<PtaxQuote[]>;
+}): Promise<PtaxQuote[]> {
+  const requestedDate = formatIsoDate(endDate);
+
+  // Cache local primeiro: observations.indicator = identifier do card, na data pedida
+  // (hoje no calendário de Brasília) e nas observações úteis anteriores.
+  const cached = await findObservationsByIndicatorAndPeriod(
+    identifier,
+    formatIsoDate(startDate),
+    requestedDate,
+  );
+
+  if (hasRequiredFxCache(cached, requestedDate)) {
+    return observationsToQuotes(cached);
+  }
+
+  // Primeira vez (ou cache incompleto): busca a API e grava para a próxima request.
+  const quotes = await fetchQuotes();
+  await saveObservations(
+    identifier,
+    latestQuotePerDay(quotes).map((quote) => ({
+      date: toIsoDate(quote.dataHoraCotacao),
+      value: quote.cotacaoVenda,
+    })),
+  );
+  return quotes;
+}
+
+async function getMonthlyValuesFromCacheOrApi(
+  identifier: string,
+  seriesId: string,
+): Promise<Array<{ date: string; value: number }>> {
+  // Cache local primeiro: observations.indicator = identifier do card.
+  const cached = await findLatestObservations(identifier, 6);
+
+  if (hasRequiredMonthlyCache(cached)) {
+    return cached.map((observation) => ({
+      date: observation.referenceDate,
+      value: observation.value,
+    }));
+  }
+
+  // Primeira vez (ou mês novo ainda não gravado): busca a FRED e persiste.
+  const monthlyValues = await getMonthlyFredValues(seriesId);
+  await saveObservations(
+    identifier,
+    monthlyValues.map((observation) => ({
+      date: observation.date,
+      value: observation.value,
+    })),
+  );
+  return monthlyValues;
+}
+
+function hasRequiredFxCache(
+  cached: CachedObservation[],
+  requestedDate: string,
+): boolean {
+  return (
+    cached.length >= FX_QUOTE_DAYS &&
+    cached.some((observation) => observation.referenceDate === requestedDate)
+  );
+}
+
+function hasRequiredMonthlyCache(cached: CachedObservation[]): boolean {
+  if (cached.length < 2) {
+    return false;
+  }
+
+  const latest = cached[cached.length - 1];
+  return isUpdatedToday(latest.updatedAt) || isLatestMonthRecentEnough(latest.referenceDate);
+}
+
+function isUpdatedToday(updatedAt: Date): boolean {
+  const today = new Date();
+  return (
+    updatedAt.getUTCFullYear() === today.getUTCFullYear() &&
+    updatedAt.getUTCMonth() === today.getUTCMonth() &&
+    updatedAt.getUTCDate() === today.getUTCDate()
+  );
+}
+
+function isLatestMonthRecentEnough(referenceDate: string): boolean {
+  const today = new Date();
+  const previousMonthStart = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1),
+  );
+  const [year, month, day] = referenceDate.split('-').map(Number);
+  const latest = new Date(Date.UTC(year, month - 1, day));
+  return latest >= previousMonthStart;
+}
+
+function observationsToQuotes(cached: CachedObservation[]): PtaxQuote[] {
+  return cached.map((observation) => ({
+    cotacaoCompra: observation.value,
+    cotacaoVenda: observation.value,
+    dataHoraCotacao: `${observation.referenceDate} 13:00:00`,
+  }));
+}
+
+function formatIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 async function getMonthlyFredValues(

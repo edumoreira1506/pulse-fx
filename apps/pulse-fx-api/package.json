@@ -18,6 +18,7 @@
             "cjs"
           ],
           "bundle": true,
+          "external": ["pg", "pg-native", "typeorm", "reflect-metadata"],
           "main": "apps/pulse-fx-api/src/main.ts",
           "tsConfig": "apps/pulse-fx-api/tsconfig.app.json",
           "assets": [
@@ -25,6 +26,7 @@
           ],
           "esbuildOptions": {
             "sourcemap": true,
+            "keepNames": true,
             "outExtension": {
               ".js": ".js"
             }
@@ -36,6 +38,7 @@
             "generateLockfile": true,
             "esbuildOptions": {
               "sourcemap": false,
+              "keepNames": true,
               "outExtension": {
                 ".js": ".js"
               }
@@ -125,6 +128,12 @@
   },
   "dependencies": {
     "axios": "^1.19.0",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "pg": "^8.23.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1"
   }
 }
