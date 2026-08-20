@@ -10,6 +10,7 @@ export interface Card {
   indicator: number;
   referenceDate: string;
   description: string;
+  tooltip: string;
 }
 
 export async function getCards(): Promise<Card[]> {

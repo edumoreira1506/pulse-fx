@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
+    await expect(async () => {
+      const response = await request.get('http://localhost:3333/');
+      expect(response.ok()).toBeTruthy();
+    }).toPass({ timeout: 60_000 });
+
     await page.goto('/');
   });
 
@@ -27,7 +32,7 @@ test.describe('Dashboard', () => {
 
   test('should display indicator cards from the API', async ({ page }) => {
     await expect(
-      page.getByRole('button', { name: /USD \/ BRL/ }),
+      page.getByRole('button', { name: /Dólar \/ Real/ }),
     ).toBeVisible();
   });
 

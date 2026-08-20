@@ -1,4 +1,8 @@
 import {
+  EUR_BRL_COPY,
+  FED_FUNDS_COPY,
+  US_CPI_COPY,
+  USD_BRL_COPY,
   getEurBrlCard,
   getFedFundsCard,
   getUsCpiCard,
@@ -111,14 +115,13 @@ describe('getUsdBrlCard', () => {
     const card = await getUsdBrlCard();
 
     expect(card).toMatchObject({
-      name: 'USD / BRL',
+      ...USD_BRL_COPY,
       identifier: 'usd-brl',
       type: 'price',
       price: 517,
       percentage: null,
       indicator: 0.15,
       referenceDate: '2026-08-19',
-      description: 'Comparando com 5 dias úteis anteriores',
     });
   });
 
@@ -126,7 +129,7 @@ describe('getUsdBrlCard', () => {
     vi.mocked(getDollarQuotes).mockResolvedValue(usdQuotes.slice(0, 5));
 
     await expect(getUsdBrlCard()).rejects.toThrow(
-      'Not enough quotes to build USD / BRL card',
+      `Not enough quotes to build ${USD_BRL_COPY.name} card`,
     );
   });
 });
@@ -143,14 +146,13 @@ describe('getEurBrlCard', () => {
       expect.any(Date),
     );
     expect(card).toMatchObject({
-      name: 'EUR / BRL',
+      ...EUR_BRL_COPY,
       identifier: 'eur-brl',
       type: 'price',
       price: 603,
       percentage: null,
       indicator: 1.22,
       referenceDate: '2026-08-19',
-      description: 'Comparando com 5 dias úteis anteriores',
     });
   });
 });
@@ -166,14 +168,13 @@ describe('getFedFundsCard', () => {
     const card = await getFedFundsCard();
 
     expect(card).toMatchObject({
-      name: 'Fed Funds',
+      ...FED_FUNDS_COPY,
       identifier: 'fed-funds',
       type: 'percentage',
       price: null,
       percentage: 4.33,
       indicator: 0,
       referenceDate: '2026-07-01',
-      description: 'Comparando com mês anterior',
     });
   });
 });
@@ -190,14 +191,13 @@ describe('getUsCpiCard', () => {
 
     expect(getSeriesObservations).toHaveBeenCalledWith('CPIAUCSL', 6);
     expect(card).toMatchObject({
-      name: 'US CPI',
+      ...US_CPI_COPY,
       identifier: 'us-cpi',
       type: 'percentage',
       price: null,
       percentage: 0.28,
       indicator: 0.28,
       referenceDate: '2026-07-01',
-      description: 'Comparando com mês anterior',
     });
   });
 
@@ -207,7 +207,7 @@ describe('getUsCpiCard', () => {
     ]);
 
     await expect(getUsCpiCard()).rejects.toThrow(
-      'Not enough observations to build US CPI card',
+      `Not enough observations to build ${US_CPI_COPY.name} card`,
     );
   });
 });

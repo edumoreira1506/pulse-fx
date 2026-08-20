@@ -22,7 +22,42 @@ export interface Card {
   indicator: number;
   referenceDate: string;
   description: string;
+  tooltip: string;
 }
+
+interface CardCopy {
+  name: string;
+  description: string;
+  tooltip: string;
+}
+
+export const USD_BRL_COPY: CardCopy = {
+  name: 'Dólar / Real',
+  description: 'Comparando com 5 dias úteis anteriores',
+  tooltip:
+    'Cotação de venda do dólar americano em reais pela PTAX do Banco Central do Brasil. A variação compara a cotação mais recente com a 5ª observação útil anterior disponível, ignorando dias sem cotação.',
+};
+
+export const EUR_BRL_COPY: CardCopy = {
+  name: 'Euro / Real',
+  description: 'Comparando com 5 dias úteis anteriores',
+  tooltip:
+    'Cotação de venda do euro em reais divulgada pelo Banco Central do Brasil. A variação compara a cotação mais recente com a 5ª observação útil anterior disponível, ignorando dias sem cotação.',
+};
+
+export const FED_FUNDS_COPY: CardCopy = {
+  name: 'Juros dos EUA',
+  description: 'Comparando com mês anterior',
+  tooltip:
+    'Taxa efetiva média dos empréstimos de curtíssimo prazo entre instituições financeiras dos EUA. A variação compara percentualmente a observação mensal mais recente com a do mês anterior.',
+};
+
+export const US_CPI_COPY: CardCopy = {
+  name: 'Índice de Preços dos EUA',
+  description: 'Comparando com mês anterior',
+  tooltip:
+    'Índice que acompanha a evolução dos preços de bens e serviços consumidos nos EUA. A variação mostra a mudança percentual do índice no mês, comparando a observação mais recente com a do mês anterior.',
+};
 
 // Janela em dias corridos enviada à Olinda. Precisa ser maior que
 // “hoje + 5 dias úteis” para cobrir fins de semana e feriados.
@@ -44,7 +79,7 @@ export async function getUsdBrlCard(): Promise<Card> {
   const { startDate, endDate } = getPtaxPeriod();
   const quotes = await getDollarQuotes(startDate, endDate);
   return buildFxPriceCard({
-    name: 'USD / BRL',
+    copy: USD_BRL_COPY,
     identifier: 'usd-brl',
     quotes,
   });
@@ -54,7 +89,7 @@ export async function getEurBrlCard(): Promise<Card> {
   const { startDate, endDate } = getPtaxPeriod();
   const quotes = await getCurrencyQuotes('EUR', startDate, endDate);
   return buildFxPriceCard({
-    name: 'EUR / BRL',
+    copy: EUR_BRL_COPY,
     identifier: 'eur-brl',
     quotes,
   });
@@ -63,19 +98,21 @@ export async function getEurBrlCard(): Promise<Card> {
 export async function getFedFundsCard(): Promise<Card> {
   // Série mensal FEDFUNDS: taxa efetiva dos fed funds.
   const monthlyValues = await getMonthlyFredValues(FED_FUNDS_SERIES_ID);
-  const { current, previous } = latestFredPair(monthlyValues, 'Fed Funds');
+  const { current, previous } = latestFredPair(
+    monthlyValues,
+    FED_FUNDS_COPY.name,
+  );
   // Variação em pontos percentuais em relação ao mês anterior (4,33 → 4,33 = 0).
   const indicator = roundToTwo(current.value - previous.value);
 
   return {
-    name: 'Fed Funds',
+    ...FED_FUNDS_COPY,
     identifier: 'fed-funds',
     type: 'percentage',
     price: null,
     percentage: current.value,
     indicator,
     referenceDate: current.date,
-    description: 'Comparando com mês anterior',
   };
 }
 
@@ -83,7 +120,7 @@ export async function getUsCpiCard(): Promise<Card> {
   // CPIAUCSL é o nível do índice, não a inflação. A inflação mensal é
   // ((atual - anterior) / anterior) * 100.
   const monthlyValues = await getMonthlyFredValues(US_CPI_SERIES_ID);
-  const { current, previous } = latestFredPair(monthlyValues, 'US CPI');
+  const { current, previous } = latestFredPair(monthlyValues, US_CPI_COPY.name);
   const monthlyInflation =
     previous.value === 0
       ? 0
@@ -91,14 +128,13 @@ export async function getUsCpiCard(): Promise<Card> {
   const inflation = roundToTwo(monthlyInflation);
 
   return {
-    name: 'US CPI',
+    ...US_CPI_COPY,
     identifier: 'us-cpi',
     type: 'percentage',
     price: null,
     percentage: inflation,
     indicator: inflation,
     referenceDate: current.date,
-    description: 'Comparando com mês anterior',
   };
 }
 
@@ -150,11 +186,11 @@ function getPtaxPeriod(): { startDate: Date; endDate: Date } {
 }
 
 function buildFxPriceCard({
-  name,
+  copy,
   identifier,
   quotes,
 }: {
-  name: string;
+  copy: CardCopy;
   identifier: string;
   quotes: PtaxQuote[];
 }): Card {
@@ -164,7 +200,7 @@ function buildFxPriceCard({
   const recentQuotes = dailyQuotes.slice(-FX_QUOTE_DAYS);
 
   if (recentQuotes.length < FX_QUOTE_DAYS) {
-    throw new Error(`Not enough quotes to build ${name} card`);
+    throw new Error(`Not enough quotes to build ${copy.name} card`);
   }
 
   const current = recentQuotes[recentQuotes.length - 1];
@@ -177,7 +213,7 @@ function buildFxPriceCard({
         100;
 
   return {
-    name,
+    ...copy,
     identifier,
     type: 'price',
     // Front-end espera o preço em centavos (5,17 → 517).
@@ -186,7 +222,6 @@ function buildFxPriceCard({
     indicator: roundToTwo(indicator),
     // Data da cotação mais recente retornada pela Olinda.
     referenceDate: toIsoDate(current.dataHoraCotacao),
-    description: 'Comparando com 5 dias úteis anteriores',
   };
 }
 

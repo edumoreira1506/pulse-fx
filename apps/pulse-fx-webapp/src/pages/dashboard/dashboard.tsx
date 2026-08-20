@@ -32,6 +32,7 @@ export function DashboardPage() {
                   indicator={card.indicator}
                   referenceDate={card.referenceDate}
                   description={card.description}
+                  tooltip={card.tooltip}
                 />
               ))}
             </div>
